@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<times>
+    <time label="" data=""/>
+    <time label="12:00 am" data="12:00am"/>
+    <time label="12:30 am" data="12:30am"/>
+    <time label="1:00 am" data="1:00am"/>
+    <time label="1:30 am" data="1:30am"/>
+    <time label="2:00 am" data="2:00am"/>
+    <time label="2:30 am" data="2:30am"/>
+    <time label="3:00 am" data="3:00am"/>
+    <time label="3:30 am" data="3:30am"/>
+    <time label="4:00 am" data="4:00am"/>
+    <time label="4:30 am" data="4:30am"/>
+    <time label="5:00 am" data="5:00am"/>
+    <time label="5:30 am" data="5:30am"/>
+    <time label="6:00 am" data="6:00am"/>
+    <time label="6:30 am" data="6:30am"/>
+    <time label="7:00 am" data="7:00am"/>
+    <time label="7:30 am" data="7:30am"/>
+    <time label="8:00 am" data="8:00am"/>
+    <time label="8:30 am" data="8:30am"/>
+    <time label="9:00 am" data="9:00am"/>
+    <time label="9:30 am" data="9:30am"/>
+    <time label="10:00 am" data="10:00am"/>
+    <time label="10:30 am" data="10:30am"/>
+    <time label="11:00 am" data="11:30am"/>
+    <time label="11:30 am" data="11:30am"/>
+    <time label="12:00 pm" data="12:00pm"/>
+    <time label="12:30 pm" data="12:30pm"/>
+    <time label="1:00 pm" data="1:00pm"/>
+    <time label="1:30 pm" data="1:30pm"/>
+    <time label="2:00 pm" data="2:00pm"/>
+    <time label="2:30 pm" data="2:30pm"/>
+    <time label="3:00 pm" data="3:00pm"/>
+    <time label="3:30 pm" data="3:30pm"/>
+    <time label="4:00 pm" data="4:00pm"/>
+    <time label="4:30 pm" data="4:30pm"/>
+    <time label="5:00 pm" data="5:00pm"/>
+    <time label="5:30 pm" data="5:30pm"/>
+    <time label="6:00 pm" data="6:00pm"/>
+    <time label="6:30 pm" data="6:30pm"/>
+    <time label="7:00 pm" data="7:00pm"/>
+    <time label="7:30 pm" data="7:30pm"/>
+    <time label="8:00 pm" data="8:00pm"/>
+    <time label="8:30 pm" data="8:30pm"/>
+    <time label="9:00 pm" data="9:00pm"/>
+    <time label="9:30 pm" data="9:30pm"/>
+    <time label="10:00 pm" data="10:00pm"/>
+    <time label="10:30 pm" data="10:30pm"/>
+    <time label="11:00 pm" data="11:30pm"/>
+    <time label="11:30 pm" data="11:30pm"/>
+</times>

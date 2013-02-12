@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<types>
+  <type label="All" data="All" />
+  <type label="Local Moving" data="Local Moving" />
+  <type label="Long Distance" data="Long Distance" />
+</types>

@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow title="Welcome to globalmover.net" xmlns:mx="http://www.macromedia.com/2003/mxml" xmlns:movers="*" 
+	width="100%" height="100%" horizontalAlign="center" verticalAlign="middle">
+
+
+<mx:Script>
+<![CDATA[
+[Event( "loginSuccessful")]
+[Event( "loginUnsuccessful")]
+
+
+public function loginResult( re ) 
+{
+  if( re.result != undefined ) {
+    dispatchEvent( { type: "loginSuccessful", username: loginInfo.username } );
+  }
+  else {
+    dispatchEvent( { type: "loginUnsuccessful", username: loginInfo.username } );
+  }
+}
+
+private function doLogin() 
+{
+  if( loginInfo.username == "" || loginInfo.username == undefined ) {
+    dispatchEvent( { type: "loginUnsuccessful" } );
+    return;
+  }
+  if( loginInfo.password == "" || loginInfo.password == undefined ) {
+    dispatchEvent( { type: "loginUnsuccessful" } );
+    return;
+  }  
+  sessionUtil.login( loginInfo.username, loginInfo.password );
+}
+]]>
+</mx:Script>
+
+<mx:RemoteObject id="sessionUtil" source="com.movers.session.Utility"
+        result="loginResult( event )" fault="mx.controls.Alert.show( 'Bad username or password.', 'Error')">
+  <mx:method name="login" />
+</mx:RemoteObject>
+	  
+
+<mx:Model id="loginInfo">
+  <username>{ username.text }</username>
+  <password>{ password.text }</password>
+</mx:Model>
+
+  <mx:Form>
+	<mx:FormItem label="Username"><mx:TextInput id="username" enter="doLogin();" /></mx:FormItem>
+	<mx:FormItem label="Password"><mx:TextInput id="password" enter="doLogin();" password="true" /></mx:FormItem>
+	<mx:FormItem horizontalAlign="right" width="100%">
+	  <mx:Button label="login" click="doLogin();" />
+	</mx:FormItem>	
+  </mx:Form>
+
+  <mx:ControlBar visible="false" height="0" />
+  
+</mx:TitleWindow>

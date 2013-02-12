@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Panel width="100%" height="100%" title="Dispatch Schedule." horizontalAlign="right" 
+	show="fetchData()" xmlns:mx="http://www.macromedia.com/2003/mxml">
+
+<mx:Script>
+
+<![CDATA[
+import com.movers.Utility;
+
+[Event("LoadJobEvent")]
+
+var doubleClickTime:Number=200;
+var lastClicked;
+var lastIndex;
+      
+
+function checkDoubleClick( event ) {
+  var dt=new Date();
+  var ms=dt.getTime();
+  var last=lastClicked;
+  lastClicked=ms;
+
+  if( dgrid.selectedIndex != lastIndex )
+  {
+    lastIndex = dgrid.selectedIndex;
+    return;
+  }
+  if (last==undefined || (ms-last)>doubleClickTime) {
+    return;
+  }
+  lastClicked=0;
+
+  var rec = dgrid.dataProvider.getItemAt( dgrid.selectedIndex );
+  dispatchEvent( { type: "LoadJobEvent", job_id: Number(rec.job) , company_id: Number(_global.session._company_id) } );
+}
+
+								  
+public function formatDate( date:Date ):String
+{
+  return dateFormatter.format( date );
+}
+
+function formatVOCurrency( text )
+{
+  var res:String = USDformatter.format( text );
+  
+  if( res != "" ) {
+    return(res);
+  }
+  else
+  {  
+    return( "$0.00" );
+  }
+}
+
+public function handleResults( results )
+{
+  var count:Number = 0;
+  for( var i=0; i< results.length; i++ )
+  {
+    var rec = results.getItemAt(i);
+    
+    var d:Date = mx.formatters.DateFormatter.parseDateString( rec.date );
+    rec.date = formatDate(d);
+
+    rec.total = formatVOCurrency( rec.total );
+    
+    results.replaceItemAt( i, rec );
+    count++;
+  }
+  dgrid.dataProvider = results;
+  this.title = "Global Dispatch Schedule.  Total of " + count + " job(s).";
+  var d:Date = new Date();
+  var minutes:String = String(d.getMinutes());
+  var hourObj:Object = Utility.getHoursAmPm(d.getHours());
+  if( (Number(minutes) < 10) )
+  {
+    minutes = "0" + minutes;
+  }
+  this.status = "Generated on " + Utility.dayOfWeek_array[d.getDay()] + " at " + hourObj.hours + ":" + minutes + " " + hourObj.ampm + "   ";
+}
+
+public function changeJobType()
+{
+  var _jobtype = jobtype_chooser.selectedItem.data;
+
+  dgrid.dataProvider = null;
+  dgrid.removeAllColumns();
+  
+  if( _jobtype == "All" )
+  {
+    dgrid.columns = columns_all;
+  }
+  if( _jobtype == "Local Moving" )
+  {
+    dgrid.columns = columns_local;
+  }
+  if( _jobtype == "Long Distance" )
+  {
+    dgrid.columns = columns_ld;  
+  }
+
+  fetchData();
+}
+
+public function fetchData() 
+{
+  this.title = "Global Dispatch Schedule.";
+  var _jobtype = jobtype_chooser.getItemAt(jobtype_chooser.selectedIndex).data;
+  var _from = formatDate(from_date.selectedDate);
+  var _to   = formatDate(to_date.selectedDate);
+  
+  
+  if( _from != "" || _to != "" ) {
+    dispatchSchedule.getDispatchSchedule( _global.session._company_id, _jobtype, _from, _to );
+  }
+}
+
+public function resetDate()
+{
+  var d:Date = new Date();
+  from_date.selectedDate = d;
+  to_date.selectedDate = d;
+  changeJobType();
+}
+
+public function subtractDay()
+{
+  var util:Utility = new Utility;
+  var d:Date = from_date.selectedDate;
+  var d2:Date = util.subtractDay( d );
+  
+  from_date.selectedDate = d2;
+  to_date.selectedDate   = d2;
+
+  fetchData();
+}
+
+public function addDay()
+{
+  var util:Utility = new Utility;
+  var d:Date = from_date.selectedDate;
+  var d2:Date = util.addDay( d );
+  
+  from_date.selectedDate = d2;
+  to_date.selectedDate   = d2;
+
+  fetchData();
+}
+
+]]>
+</mx:Script>
+
+<mx:Array id="columns_all">
+  <mx:DataGridColumn columnName="job" />
+  <mx:DataGridColumn columnName="type" />
+  <mx:DataGridColumn columnName="time" />
+  <mx:DataGridColumn columnName="from_city" headerText="from" />
+  <mx:DataGridColumn columnName="to_city" headerText="to" />
+  <mx:DataGridColumn columnName="from_state" headerText="from" width="40" />
+  <mx:DataGridColumn columnName="to_state" headerText="to" width="40" />
+  <mx:DataGridColumn columnName="status" />
+  <mx:DataGridColumn columnName="date" />
+  <mx:DataGridColumn columnName="name" width="160" />
+  <mx:DataGridColumn columnName="confirmed_by" />
+</mx:Array>
+					    
+<mx:Array id="columns_local">
+  <mx:DataGridColumn columnName="job" width="70" />
+  <mx:DataGridColumn columnName="name" width="140" />
+  <mx:DataGridColumn columnName="time" width="70" />
+  <mx:DataGridColumn columnName="from" />
+  <mx:DataGridColumn columnName="to" />
+  <mx:DataGridColumn columnName="men" width="40" />
+  <mx:DataGridColumn columnName="phone" />
+  <mx:DataGridColumn columnName="confirmed_by" width="90" headerText="confirmed by" />
+  <mx:DataGridColumn columnName="truck" width="60" />
+  <mx:DataGridColumn columnName="agent" width="80" />
+  <mx:DataGridColumn columnName="total" width="90" />
+</mx:Array>
+
+<mx:Array id="columns_ld">
+  <mx:DataGridColumn columnName="job" width="70" />
+  <mx:DataGridColumn columnName="status" width="70" />
+  <mx:DataGridColumn columnName="name" width="140" />
+  <mx:DataGridColumn columnName="time" width="70" />
+  <mx:DataGridColumn columnName="from" width="40" />
+  <mx:DataGridColumn columnName="to" width="40" />
+  <mx:DataGridColumn columnName="phone" width="100" />
+  <mx:DataGridColumn columnName="confirmed_by" width="90" headerText="confirmed by" />
+  <mx:DataGridColumn columnName="truck" width="60" />
+  <mx:DataGridColumn columnName="agent" width="80" />
+  <mx:DataGridColumn columnName="total" width="90" />
+</mx:Array>
+
+<mx:Model id="dispatch_types" source="dispatch_types.xml" />
+
+<mx:DateFormatter id="dateFormatter" formatString="MM-DD-YYYY" />
+<mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+	decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left"/>
+
+<mx:RemoteObject id="dispatchSchedule" source="com.movers.session.Utility"
+	result="handleResults( event.result );" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="getDispatchSchedule" />
+</mx:RemoteObject>
+	  
+
+<mx:DataGrid id="dgrid" width="100%" height="100%" change="checkDoubleClick()" />
+
+<mx:ControlBar horizontalAlign="right">
+  <mx:Spacer width="100%" />
+  
+  <mx:Label text="Job Type" />
+  <mx:ComboBox id="jobtype_chooser" dataProvider="{ dispatch_types.type }" change="changeJobType();" />
+  
+  <mx:Label text="From" />
+  <mx:DateField id="from_date" dateFormatter="formatDate" change="fetchData();" />
+  
+  <mx:Label text="To" />
+  <mx:DateField id="to_date" dateFormatter="formatDate" change="fetchData();" load="resetDate()" />
+  
+  <mx:Spacer width="5" />
+  
+  <mx:Image source="@Embed('assets/back.png')" toolTip="Previous Day" mouseDown="subtractDay()" />
+  <mx:Image source="@Embed('assets/gtk-refresh.png')" toolTip="Reload" mouseDown="fetchData()" />
+  <mx:Image source="@Embed('assets/forward.png')" toolTip="Next Day" mouseDown="addDay()" />
+  
+</mx:ControlBar>
+</mx:Panel>

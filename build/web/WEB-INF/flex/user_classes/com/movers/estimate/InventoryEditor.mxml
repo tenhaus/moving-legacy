@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow title="Edit inventory." xmlns:mx="http://www.macromedia.com/2003/mxml" xmlns:movers="*" 
+	horizontalAlign="center" verticalAlign="middle" show="initFocus()">
+
+
+<mx:Script>
+<![CDATA[
+[Event("OkEvent")]
+[Event("DeleteEvent")]
+[Event("CancelEvent")]
+
+public function initFocus()
+{
+  Selection.setFocus(item);
+}
+
+public function setResult( eventString ) 
+{
+  if( eventString == "ok" ) {
+    dispatchEvent( { type: "OkEvent" } );
+  }
+  if( eventString == "delete" ) {
+    dispatchEvent( { type: "DeleteEvent" } );
+  }
+  if( eventString == "cancel" ) {
+    dispatchEvent( { type: "CancelEvent" } );
+  }
+}
+function formatCurrency( item )
+{
+  var res:String = USDformatter.format( item.text );
+
+  if( res != "" ) {
+    item.text = res;
+  }
+  else
+  {
+    item.text = "$0.00";
+  }
+}
+function updateLBS()
+{
+  if( auto_calc_lbs.selected && Number(cubic_feet.text) )
+  {
+  var _cuft:Number = Number(cubic_feet.text);
+    lbs.text = _cuft * 7;
+  }
+}
+			      
+]]>
+</mx:Script>
+
+  <mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+  	decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left"/>
+  
+  <mx:HBox>
+  
+  <mx:Form>
+  
+    <mx:FormItem label="Item">
+      <mx:TextInput width="200" id="item" enter="setResult('ok');" />
+    </mx:FormItem>
+    
+    <mx:FormItem label="Quantity">
+      <mx:TextInput width="80" text="0" id="quantity" enter="setResult('ok');"/>
+    </mx:FormItem>
+    
+    <mx:FormItem label="Cubic Feet">
+      <mx:TextInput width="80" text="0" id="cubic_feet" enter="setResult('ok');" change="updateLBS();" />
+    </mx:FormItem>
+    
+    <mx:FormItem direction="horizontal">
+      <mx:CheckBox label="Pack" id="pack" />
+      <mx:CheckBox label="Unpack" id="unpack" />
+    </mx:FormItem>
+
+  </mx:Form>
+  
+  <mx:Form>
+    <mx:FormItem label="Quantity to Pack">
+      <mx:TextInput width="80" text="0" id="pack_quantity" enter="setResult('ok');"/>
+    </mx:FormItem>
+    
+    <mx:FormItem label="Quantity to Unpack">
+      <mx:TextInput width="80" text="0" id="unpack_quantity" enter="setResult('ok');"/>
+    </mx:FormItem>
+
+    <mx:FormItem label="Lbs. / Unit">
+      <mx:TextInput width="80" text="0" id="lbs" enter="setResult('ok');"/>
+    </mx:FormItem>
+
+    <mx:FormItem>
+      <mx:CheckBox selected="true" label="Calculate Lbs. / Unit" id="auto_calc_lbs" />
+    </mx:FormItem>
+  
+  </mx:Form>
+
+  </mx:HBox>
+
+  <mx:ControlBar>
+    <mx:Button label="Delete this item." click="setResult('delete')"/>
+    <mx:Spacer width="100%" />
+    <mx:Button label="Cancel" click="setResult('cancel')" />
+    <mx:Button label="Ok" click="setResult('ok')" />
+  </mx:ControlBar>
+  
+</mx:TitleWindow>

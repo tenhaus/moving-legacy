@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Application xmlns:mx="http://www.macromedia.com/2003/mxml" backgroundColor="#FFFFFF">
+
+	<mx:Script>
+    <![CDATA[
+        function genData() {
+            var rowCount = Number(rows.text);
+            var dp = [];
+            for (var i=0;i<rowCount;i++) {
+                dp.push({data1:"$" + i + ".00"});
+            }
+            mydg.dataProvider = dp;
+        }
+
+        function doPrint() {
+            var pj : PrintJob = new PrintJob();
+            // position of currently visible rows stored
+            var prev_vPosition:Number = mydg.vPosition;
+            var prev_width:Number = mydg.width;
+            var prev_height:Number = mydg.height;
+
+            if(pj.start() != true)
+                return;
+            mydg.setSize(pj.pageWidth,pj.pageHeight);
+            
+            // number of rows per view, ignoring fractions (floor)
+            var rowsPerPage:Number = Math.floor((mydg.height - mydg.rowHeight)/ mydg.rowHeight);
+            // number of pages to be printed, if there are any fractions, have one page for that (ceil)
+            var pages:Number = Math.ceil(mydg.dataProvider.length / rowsPerPage);
+
+            for (var i=0;i<pages;i++) {
+                // move the visible row position.
+                mydg.vPosition = i*rowsPerPage;
+                // size box relative to the grid
+                var b= {xMin:0,xMax:mydg.width,yMin:0,yMax:mydg.height}
+                pj.addPage(mydg,b);			
+            }
+            pj.send();
+            delete pj;
+            // position of currently visible rows restored
+            mydg.setSize(prev_width,prev_height);
+            mydg.vPosition = prev_vPosition;
+        }
+ 	]]>
+    </mx:Script>
+
+	<mx:Panel title="Printing from a DataGrid">
+		<mx:VBox>
+		  <mx:Label text="number of rows to create:"/>
+		  <mx:HBox>
+	      <mx:Button label="Print" click="doPrint()" />
+	      <mx:Button label="Go" click="genData()" />
+	      <mx:TextInput id="rows" text="100"/>
+		  </mx:HBox>
+	    </mx:VBox>
+		<mx:DataGrid id="mydg" width="300" height="200"/>
+	</mx:Panel>
+
+</mx:Application>

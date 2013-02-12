@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<companies>
+    <company label="" data="" />
+    <company label="Giant" data="1" />
+    <company label="Chesapeake" data="2" />
+    <company label="Go West" data="3" />    
+    <company label="Epic" data="4" />    
+    <company label="Paramount" data="5" />    
+</companies>

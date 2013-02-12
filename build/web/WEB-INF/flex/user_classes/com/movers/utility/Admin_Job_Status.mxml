@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Panel title="Change Job Status." xmlns:mx="http://www.macromedia.com/2003/mxml">
+
+  <mx:Script>
+  <![CDATA[
+
+  import com.movers.Utility;
+ 
+  [Event("SubmitEvent")] 
+
+  var _salesman = null;
+  
+  public function reset() 
+  {
+    customer_name.text = "";
+    job_number.text = "";
+    job_type.selectedIndex = 0;
+    job_status.selectedIndex = 0;
+    taken_by.selectedIndex = 0;
+    booked_by.selectedIndex = 0;
+  }
+  
+  public function partialReset() 
+  {
+    customer_name.text = "";
+    job_type.selectedIndex = 0;
+    job_status.selectedIndex = 0;
+    taken_by.selectedIndex = 0;
+    booked_by.selectedIndex = 0;
+  }
+
+  public function cancel()
+  {
+    reset();
+    dispatchEvent( { type: "SubmitEvent" } );
+  }
+  
+  public function do_change()
+  {
+    if( statusValid() ) 
+    {
+      sessionUtil.setJobStatus( Number(job_number.text), company_name.selectedItem.data,
+      				StatusModel.job_type, StatusModel.status,
+				StatusModel.taken_by, StatusModel.booked_by );
+      return;
+    }
+    else {
+      return;
+    }
+  }
+
+  public function change_Result( result )
+  {
+    reset();
+    dispatchEvent( { type: "SubmitEvent" } );
+  }
+
+  public function statusValid()
+  {
+    if( StatusModel.job_type == "" )
+    {
+      mx.controls.Alert.show( "Please select a job type." );
+      return( false );
+    }
+    if( StatusModel.status == "" )
+    {
+      mx.controls.Alert.show( "Please select the status for this job." );
+      return( false );
+    }
+    if( StatusModel.booked_by == "" || StatusModel.booked_by == "--" )
+    {
+      mx.controls.Alert.show( "Please select who booked this job." );
+      return( false );
+    }
+    if( StatusModel.taken_by == "" || StatusModel.taken_by == "--" )
+    {
+      mx.controls.Alert.show( "Please select who took this job." );
+      return( false );
+    }			
+    return( true );
+  }
+
+  public function getJobInfo()
+  {
+    if( company_name.selectedItem.label == "" ) 
+    {
+      mx.controls.Alert.show( "Select the company first." );
+      return;
+    }
+    getInfo.getJobStatus( Number(job_number.text), company_name.selectedItem.data );
+  }
+
+  public function getInfo_Result( result )
+  {
+    var util:Utility = new Utility();
+    
+    var rec = result.getItemAt(0);
+    
+    customer_name.text = rec.name;
+    job_type.selectedIndex = util.findIndex( job_type, rec.jobtype );
+    job_status.selectedIndex = util.findIndex( job_status, rec.status );
+    taken_by.selectedIndex = util.findIndex( taken_by, rec.taken_by );
+    booked_by.selectedIndex = util.findIndex( booked_by, rec.booked_by );
+  }
+
+  public function getSalesman()
+  {
+    getEmployees.getEmployees( company_name.selectedItem.data );
+  }
+
+  public function getSalesman_Result( result )
+  {
+    var tmp:Array = new Array();
+    for( var i=0; i< result.length; i++ )
+    {
+      tmp.push( { data: result.getItemAt(i).username, label: result.getItemAt(i).username } );
+    }    
+    _salesman = tmp;
+    
+    booked_by.dataProvider = _salesman;
+    taken_by.dataProvider  = _salesman;
+  }
+  
+  ]]>
+  </mx:Script>
+
+  
+  <mx:RemoteObject id="getEmployees" source="com.movers.session.Utility"
+  	result="getSalesman_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+    <mx:method name="getEmployees" />
+  </mx:RemoteObject>
+  
+  <mx:RemoteObject id="sessionUtil" source="com.movers.session.Utility"
+  	result="change_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+    <mx:method name="setJobStatus" />
+  </mx:RemoteObject>
+  
+  <mx:RemoteObject id="getInfo" source="com.movers.session.Utility"
+  	result="getInfo_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+    <mx:method name="getJobStatus" />
+  </mx:RemoteObject>		  
+		  
+
+  <mx:Model id="StatusModel">
+    <job_type>{ job_type.selectedItem.data }</job_type>
+    <status>{ job_status.selectedItem.data }</status>
+    <booked_by>{ booked_by.selectedItem.data }</booked_by>
+    <taken_by>{ taken_by.selectedItem.data }</taken_by>
+  </mx:Model>
+
+  <mx:Model id="job_types" source="job_types.xml"/>
+  <mx:Model id="status_types" source="status_types.xml"/>
+  <mx:Model id="companies" source="companies_no_all.xml" />
+
+  <mx:Spacer height="50" />
+  
+  <mx:HBox backgroundColor="#F7F7F7" width="100%" horizontalAlign="center" verticalAlign="middle" height="300" > 
+  
+  <mx:VBox horizontalAlign="right">
+    <mx:Form>
+      <mx:FormItem label="Company: ">
+        <mx:ComboBox id="company_name" dataProvider="{companies.company}" change="getSalesman()" />
+      </mx:FormItem>
+      <mx:FormItem label="Name: ">
+        <mx:Text id="customer_name" selectable="false" width="200" />
+      </mx:FormItem>
+      <mx:FormItem label="Job Number" direction="horizontal">
+        <mx:TextInput id="job_number" width="80" enter="getJobInfo()" change="partialReset()" />
+	<mx:Button label="load" click="getJobInfo()" />
+      </mx:FormItem>
+      <mx:FormItem label="Job Type" required="true">
+        <mx:ComboBox id="job_type" width="140" dataProvider="{ job_types.type }" />
+      </mx:FormItem>
+      <mx:FormItem label="Status" required="true">
+        <mx:ComboBox id="job_status" width="140" dataProvider="{ status_types.type }" />
+      </mx:FormItem>
+     <mx:FormItem label="Taken By" required="true">
+        <mx:ComboBox id="taken_by" width="140" dataProvider=" { _salesman } " />
+      </mx:FormItem>
+      <mx:FormItem label="Booked By" required="true">
+        <mx:ComboBox id="booked_by" width="140" dataProvider=" { _salesman } " />
+      </mx:FormItem>
+    </mx:Form>
+    
+    <mx:HBox horizontalAlign="right">
+      <mx:Button label="Cancel" width="60" click="cancel()" />
+      <mx:Button label="Update" width="60" click="do_change()" />
+      <mx:Spacer width="56" />
+    </mx:HBox>
+
+  </mx:VBox>
+  
+  <mx:Spacer width="40" />
+  
+  </mx:HBox>
+
+  <mx:ControlBar visible="false" height="0" />
+
+</mx:Panel>

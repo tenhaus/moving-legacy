@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/smartmove_flex">
+  <Logger className="org.apache.catalina.logger.FileLogger" prefix="smartmove_flex." suffix=".log" timestamp="true"/>
+  <ResourceLink name="jdbc/postgres" type="javax.sql.DataSource" global="jdbc/postgres"/>
+</Context>

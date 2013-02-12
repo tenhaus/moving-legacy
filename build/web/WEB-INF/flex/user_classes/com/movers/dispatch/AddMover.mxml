@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Panel width="100%" height="100%" title="New Mover." horizontalAlign="right" xmlns:mx="http://www.macromedia.com/2003/mxml" creationPolicy="all" creationComplete="reset()">
+
+<mx:Script>
+<![CDATA[
+
+  import mx.validators.*;
+  import com.movers.VO.*;
+  import com.movers.Utility;
+  
+  [Event("SubmitEvent")]
+  
+  public var moverInformationVO:MoverInformationVO;
+  
+  
+  public function cancel()
+  {
+    reset();
+    dispatchEvent( { type: "SubmitEvent" } );
+  }
+
+  public function reset()
+  {
+    name.text = "";
+    name.validationSucceeded();
+    address_1.text = "";
+    address_2.text = "";
+    city.text = "";
+    state.selectedIndex  = 0;
+    zip_code.text = "";
+    home_phone.text = "";
+    cell_phone.text = "";
+    other_phone.text = "";
+    email.text = "";
+    ssn.text = "";
+    license.text = "";
+    rate_f.text = "$0.00";
+    rate_d.text = "$0.00";
+    rate_h.text = "$0.00";
+    rate_s.text = "$0.00";
+    commision.text = "0";
+    
+    moverInformationVO = new MoverInformationVO();
+  }
+
+  public function addMover_Result( result )
+  {
+    //mx.controls.Alert.show( "result is " + result );
+    reset();
+    dispatchEvent( { type: "SubmitEvent" } );
+  }
+
+  public function addNewMover()
+  {
+    if( isValid() ) {
+      moverInformationVO._mover_id   = -1;
+      moverInformationVO._company_id = _global.session._company_id;
+      
+      util_add_mover.addMover( moverInformationVO );
+    }
+    else {
+      mx.controls.Alert.show( "There are errors on the page." );
+    }
+  }
+  
+  function formatCurrency( item )
+  {
+    var res:String = USDformatter.format( item.text );
+    if( res != "" ) {
+      item.text = res;
+    }
+    else
+    {
+      item.text = "$0.00";
+    }
+  }
+
+  public static function stripPhoneFormatting( num:String ) : String
+  {
+    if( num == null )
+    {
+      return( "" );
+    }
+    var result:String = "";
+    for( var i=0; i<num.length; i++ )
+    {  
+      for( var j=0; j<=9; j++ )
+      {
+        if( j == Number(num.charAt(i)) )
+	{
+	  result += num.charAt(i);
+	}
+      }
+    }
+    
+    if( Number(result) )
+    {
+      return( result );      
+    }
+    else
+    {
+      return( "" );
+    }
+  }
+
+  function formatPhone( item )
+  {    
+    var tmp:String = stripPhoneFormatting( item.text );
+    item.text = phoneformatter.format( tmp );
+  }
+					    
+  function formatDecimal( item )
+  {
+    var res:String = decimalNumberFormatter.format( item.text );
+
+    if( res != "" ) {
+        item.text = res;
+    }
+    else
+    {
+      item.text = "0";
+    }
+  }
+  
+  public function isValid() :Boolean
+  {
+    var moverValid:Boolean = false;
+    
+    moverValid = Validator.isStructureValid(this,'mover_model' );
+
+    return( moverValid );
+  }
+									     
+  
+  function validateForm( validator, value )
+  {
+    Validator.isValid( this, 'mover_model.name' );
+    Validator.isValid( this, 'mover_model.home_phone' );
+    Validator.isValid( this, 'mover_model.cell_phone' );
+    Validator.isValid( this, 'mover_model.other_phone' );
+    Validator.isValid( this, 'mover_model.email' );
+  }
+		   
+    
+]]>
+</mx:Script>
+
+
+<mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+	decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left"/>
+
+<mx:NumberFormatter id="decimalNumberFormatter" precision="1" useNegativeSign="true" useThousandsSeparator="false" />
+
+<mx:PhoneFormatter id="phoneformatter" areaCodeFormat="(###)" formatString="(###)###-####" />
+
+<mx:RemoteObject id="util_add_mover" source="com.movers.session.Utility"
+	result="addMover_Result(event.result)" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="addMover" />
+</mx:RemoteObject>
+
+<mx:Model id="states" source="states.xml" />
+<mx:Model id="mover_model">
+  <name>{ name.text }</name>
+  <address_1>{ address_1.text }</address_1>
+  <address_2>{ address_2.text }</address_2>
+  <city>{ city.text }</city>
+  <state>{ state.selectedItem.data }</state>
+  <zip>{ zip_code.text }</zip>
+  <home_phone>{ home_phone.text }</home_phone>
+  <cell_phone>{ cell_phone.text }</cell_phone>
+  <other_phone>{ other_phone.text }</other_phone>
+  <email>{ email.text }</email>
+  <ssn>{ ssn.text }</ssn>
+  <license>{ license.text }</license>
+  <rate_f>{ rate_f.text }</rate_f>
+  <rate_d>{ rate_d.text }</rate_d>
+  <rate_h>{ rate_h.text }</rate_h>
+  <rate_s>{ rate_s.text }</rate_s>
+  <commision>{ commision.text }</commision>
+</mx:Model>
+
+<mx:StringValidator required="true" field="mover_model.name" maxLength="100" tooLongError="Mover name can be no longer than 100 characters." />
+
+<mx:EmailValidator field="mover_model.email" required="false" />
+ 
+<mx:PhoneNumberValidator field="mover_model.home_phone" required="false" />
+<mx:PhoneNumberValidator field="mover_model.cell_phone" required="false" />
+<mx:PhoneNumberValidator field="mover_model.other_phone" required="false" />
+
+<mx:Validator field="mover_model" validate="validateForm( event.validator, event.value );" listener="this" />
+
+<mx:Binding source="mover_model.name" destination="moverInformationVO._name" />
+<mx:Binding source="mover_model.address_1" destination="moverInformationVO._address_1" />
+<mx:Binding source="mover_model.address_2" destination="moverInformationVO._address_2" />
+<mx:Binding source="mover_model.city" destination="moverInformationVO._city" />
+<mx:Binding source="mover_model.state" destination="moverInformationVO._state" />
+<mx:Binding source="mover_model.zip" destination="moverInformationVO._zip" />
+<mx:Binding source="mover_model.home_phone" destination="moverInformationVO._home_phone" />
+<mx:Binding source="mover_model.cell_phone" destination="moverInformationVO._cell_phone" />
+<mx:Binding source="mover_model.other_phone" destination="moverInformationVO._other_phone" />
+<mx:Binding source="mover_model.email" destination="moverInformationVO._email" />
+<mx:Binding source="mover_model.ssn" destination="moverInformationVO._ssn" />
+<mx:Binding source="mover_model.license" destination="moverInformationVO._license" />
+<mx:Binding source="Utility.stripFormatting(mover_model.rate_f)" destination="moverInformationVO._rate_f" />
+<mx:Binding source="Utility.stripFormatting(mover_model.rate_d)" destination="moverInformationVO._rate_d" />
+<mx:Binding source="Utility.stripFormatting(mover_model.rate_h)" destination="moverInformationVO._rate_h" />
+<mx:Binding source="Utility.stripFormatting(mover_model.rate_s)" destination="moverInformationVO._rate_s" />
+<mx:Binding source="Utility.stripFormatting(mover_model.commision)" destination="moverInformationVO._commision" />
+
+<mx:Spacer height="70" />
+
+<mx:HBox backgroundColor="#F7F7F7" width="100%" horizontalAlign="center" verticalAlign="middle">
+  
+  <mx:Form>
+    
+    <mx:FormItem label="Name" required="true">
+      <mx:TextInput id="name" width="180" />
+    </mx:FormItem>
+    <mx:FormItem label="Address">
+      <mx:TextInput id="address_1" width="180" />
+      <mx:TextInput id="address_2" width="180" />
+    </mx:FormItem>
+    <mx:FormItem label="City">
+      <mx:TextInput id="city" width="180" />
+    </mx:FormItem>
+    <mx:FormItem label="State">
+      <mx:ComboBox id="state" dataProvider="{ states.state }" />
+    </mx:FormItem>
+    <mx:FormItem label="Zip">
+      <mx:TextInput id="zip_code" width="90" />
+    </mx:FormItem>
+  </mx:Form>
+  
+  <mx:Form>
+    
+    <mx:FormItem label="Home Phone">
+      <mx:TextInput id="home_phone" width="180" />
+    </mx:FormItem>
+    <mx:FormItem label="Cell Phone">
+      <mx:TextInput id="cell_phone" width="180" />
+    </mx:FormItem>
+    <mx:FormItem label="Other Phone">
+      <mx:TextInput id="other_phone" width="180" />
+    </mx:FormItem>
+    <mx:FormItem label="Email">
+      <mx:TextInput id="email" width="180" />
+    </mx:FormItem>
+    <mx:FormItem label="SSN">
+      <mx:TextInput id="ssn" width="180" />
+    </mx:FormItem>
+    <mx:FormItem label="License">
+      <mx:TextInput id="license" width="180" />
+    </mx:FormItem>
+  </mx:Form>
+  
+  <mx:Form>
+
+    <mx:FormItem label="Forman">
+      <mx:TextInput id="rate_f" width="80" text="$0.00" focusOut="formatCurrency(rate_f)" />
+    </mx:FormItem>
+    <mx:FormItem label="Driver">
+      <mx:TextInput id="rate_d" width="80" text="$0.00" focusOut="formatCurrency(rate_d)" />
+    </mx:FormItem>
+    <mx:FormItem label="Helper">
+      <mx:TextInput id="rate_h" width="80" text="$0.00" focusOut="formatCurrency(rate_h)" />
+    </mx:FormItem>
+    <mx:FormItem label="Storage">
+      <mx:TextInput id="rate_s" width="80" text="$0.00" focusOut="formatCurrency(rate_s)" />
+    </mx:FormItem>
+    <mx:FormItem label="Commision %">
+      <mx:TextInput id="commision" width="80" text="0"  focusOut="formatDecimal(commision)" />
+    </mx:FormItem>
+
+  </mx:Form>
+  
+</mx:HBox>
+	  
+<mx:ControlBar horizontalAlign="right">
+  <mx:Button label="Cancel" click="cancel()" />
+  <mx:Spacer width="100%" />
+  <mx:Button label="Submit" click="addNewMover()" />
+</mx:ControlBar>
+
+</mx:Panel>

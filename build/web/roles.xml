@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<roles>
+    <role label="" data="" />
+    <role label="Customer Service" data="Customer Service" />
+    <role label="Dispatch" data="Dispatch" />
+    <role label="Manager" data="Manager" />    
+    <role label="Moving Advisor" data="Moving Advisor" />    
+</roles>

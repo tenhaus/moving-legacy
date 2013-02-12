@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:VBox width="100%" height="100%" horizontalAlign="center" xmlns:mx="http://www.macromedia.com/2003/mxml" load="initVO();">
+  
+  <mx:Script>
+  <![CDATA[
+  import com.movers.VO.*;
+  
+  [Event("PaymentChanged")]
+  
+  var popup;
+  var paymentVO:PaymentVO;
+  
+  var doubleClickTime:Number=200;
+  var lastClicked;
+  var lastIndex;
+  
+  public function reset()
+  { 
+    paymentVO = new PaymentVO();
+    paymentVO._paymentList = new Array();
+    
+    paymentdate.selectedDate = null;
+    paymentdate.validationSucceeded();
+    
+    paymenttype.selectedIndex = 0;
+    paymenttype.text = "";
+    paymenttype.validationSucceeded();
+    
+    amount.text = "$0.00";
+    amount.validationSucceeded();
+    
+    description.text = "";
+    description.validationSucceeded();
+  }
+  
+  function initVO()
+  {
+     paymentVO = new PaymentVO();
+     paymentVO._paymentList = new Array();
+  }
+
+  public function setVO( new_payment )
+  {
+    paymentVO = new_payment;
+    paymentVO._paymentList = mx.utils.ArrayUtil.toArray( new_payment._paymentList );
+    
+    for( var i=0; i< paymentVO._paymentList.length; i++ )
+    {
+      var rec = paymentVO._paymentList.getItemAt(i);
+      rec.amount = formatVOCurrency( rec.amount );
+      var d:Date = mx.formatters.DateFormatter.parseDateString( rec.date );
+      rec.date = formatDate( d );
+      paymentVO._paymentList.replaceItemAt( i, rec );
+    }
+  }
+		
+  function showWindow(modal) {
+    /*
+    var rec = dgrid.getItemAt(dgrid.selectedIndex);
+    
+    popup = mx.managers.PopUpManager.createPopUp( _root, com.movers.MaterialEditor, modal, {deferred: true} );    
+    var delegate = mx.utils.Delegate.create( this, edit_result );
+    popup.addEventListener( "OkEvent", delegate );
+    popup.addEventListener( "DeleteEvent", delegate );
+    popup.addEventListener( "CancelEvent", delegate );
+    popup.centerPopUp();
+    
+    popup.item.text = rec.item;
+    popup.quantity.text = rec.qty;
+    popup.price.text = rec.price;
+    if( rec.pack == "yes" ) {
+      popup.pack.selected = true;
+    }
+    else 
+    {
+      popup.pack.selected = false;
+    }
+    if( rec.unpack == "yes" )
+    {
+      popup.unpack.selected = true;
+    }
+    else
+    {
+      popup.unpack.selected = false;
+    }
+    popup.packing.text = rec.packing;
+    popup.unpacking.text = rec.unpacking;
+    popup.material.text = rec.material;
+    popup.extra.text = rec.extra;
+    */
+  }
+
+  public function edit_result( event )
+  {
+    /*
+    if( event.type == "DeleteEvent" )
+    {      
+      dgrid.dataProvider.removeItemAt( dgrid.selectedIndex );
+    }
+    if( event.type == "OkEvent" )
+    {
+      var rec = dgrid.dataProvider.getItemAt( dgrid.selectedIndex );
+      
+      rec.item = popup.item.text;
+      rec.qty = popup.quantity.text;
+      rec.price = popup.price.text;
+      if( popup.pack.selected )
+      {
+        rec.pack = "yes";
+      }
+      else
+      {
+        rec.pack = "no";
+      }
+      if( popup.unpack.selected )
+      {
+        rec.unpack = "yes";
+      }
+      else
+      {
+        rec.unpack = "no";
+      }
+      rec.packing = popup.packing.text;
+      rec.unpacking = popup.unpacking.text;
+      rec.material = popup.material.text;
+      rec.extra = popup.extra.text
+      dgrid.dataProvider.replaceItemAt( dgrid.selectedIndex, rec );
+    }
+    event.target.deletePopUp();
+    */
+  }
+  
+  function editItem( event ) {
+    /*
+    var dt=new Date();
+    var ms=dt.getTime();
+    var last=lastClicked;
+    lastClicked=ms;
+    if( dgrid.selectedIndex != lastIndex )
+    {
+      lastIndex = dgrid.selectedIndex;
+      return;
+    }
+    if (last==undefined || (ms-last)>doubleClickTime) {
+      return;
+    }
+    lastClicked=0;
+    showWindow(true);
+    */
+  }
+
+  function addItem()
+  { 
+    if( paymentdate.selectedDate == null )
+    {
+      mx.controls.Alert.show( "Please select the date of the payment." );
+      return;
+    }
+    if( paymenttype.text == "" ) 
+    {
+      mx.controls.Alert.show( "Please select the type of payment." );
+      return;
+    }
+    if( amount.text == "$0.00" )
+    {
+      mx.controls.Alert.show( "Please enter a payment amount." );
+      return;
+    }
+    dgrid.dataProvider.addItem( { payment_id: "", date:paymentdate.text, type:paymenttype.text,
+    				  amount:amount.text,description:description.text } );
+    paymentdate.selectedDate = null;
+    paymenttype.selectedIndex = 0;
+    amount.text = "$0.00";
+    description.text = "";
+    Selection.setFocus(paymentdate);
+    dispatchEvent( { type: "PaymentChanged", paid: paymentVO.getTotalPaid() } );
+  }
+
+  function formatCurrency( item )
+  {
+    var res:String = USDformatter.format( item.text );
+  
+    if( res != "" ) {
+      item.text = res;
+    }
+    else
+    {
+      item.text = "$0.00";
+    }
+  }
+
+  function formatVOCurrency( text )
+  {
+    var res:String = USDformatter.format( text );
+    
+    if( res != "" ) {
+      return(res);
+    }
+    else
+    {
+       return( "$0.00" );
+    }
+  }
+					    
+  
+  function formatNumber( item )
+  {
+    var res:String = numberFormatter.format( item.text );
+    if( res != "" ) {
+      item.text = res;
+    }
+    else
+    {
+      item.text = "0";
+    }
+  }
+  public function formatDate( date:Date ):String
+  {
+    return dateFormatter.format( date );
+  }
+
+  function getVars() : LoadVars
+  {
+    var vars:LoadVars = new LoadVars();
+    
+    vars.date = "";
+    vars.type = "";
+    vars.amount = "";
+    vars.description = "";
+    
+    for( var i=0; i<dgrid.dataProvider.length; i++ )
+    {
+      var rec = dgrid.getItemAt(i);
+
+      vars.date += rec.date + "\n";
+      vars.type += rec.type + "\n";
+      vars.amount += rec.amount + "\n";
+      vars.description += rec.description + "\n";
+    }
+
+    vars.total = paymentVO.getTotalPaid();
+
+    return( vars );
+  }
+
+  ]]>
+  </mx:Script>
+  
+  <mx:Model id="inputs">
+    <item>{ paymentdate.text }</item>
+    <quantity>{ paymentdate.text  }</quantity>
+    <price>{ paymentdate.text }</price>
+  </mx:Model>
+
+  <mx:Model id="payment_types" source="payments.xml" />
+  
+  <mx:StringValidator   field="inputs.item" required="false" maxLength="50" tooLongError="Item name can be no longer than 50 characters."/>
+  <mx:NumberValidator   field="inputs.quantity" />
+  <mx:CurrencyValidator field="inputs.price" />
+
+  <mx:DateFormatter id="dateFormatter" formatString="MM-DD-YYYY" />
+  
+  <mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+  	decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left"/> 
+  <mx:NumberFormatter precision="0" id="numberFormatter" useThousandsSeparator="false"/> 
+  <mx:Spacer height="20" />
+  
+  <mx:Label text="* Payments cannot be changed once added." />
+  
+  <mx:DataGrid width="90%" id="dgrid" height="50%" change="editItem(event);" dataProvider="{paymentVO._paymentList}">
+  <mx:columns>
+    <mx:Array>
+      <mx:DataGridColumn columnName="date" />
+      <mx:DataGridColumn columnName="type" />
+      <mx:DataGridColumn columnName="amount" />
+      <mx:DataGridColumn columnName="description" width="350"/>
+    </mx:Array>
+  </mx:columns>
+  </mx:DataGrid>
+  
+  <mx:Spacer height="5" />
+  
+  <mx:HBox backgroundColor="#F7F7F7" height="140" width="100%" horizontalAlign="center">
+    <mx:Spacer width="30" />
+    <mx:Form>
+      <mx:FormItem label="Date" required="true">
+        <mx:DateField id="paymentdate" dateFormatter="formatDate" />
+      </mx:FormItem>
+      <mx:FormItem label="Type" required="true">
+        <mx:ComboBox id="paymenttype" dataProvider="{ payment_types.payment }" />
+      </mx:FormItem>
+    </mx:Form>
+    
+    <mx:Form>
+      <mx:FormItem label="Amount" required="true">
+        <mx:TextInput id="amount" width="80" text="$0.00" focusOut="formatCurrency(amount);" enter="formatCurrency(amount); addItem();"/>
+      </mx:FormItem>
+      <mx:FormItem label="Description">
+        <mx:TextInput id="description" enter="addItem();"/>
+      </mx:FormItem>
+    </mx:Form>
+    
+    <mx:Form>
+      <mx:FormItem>
+        <mx:Button label="Add Payment" click="addItem();" />
+      </mx:FormItem>
+    </mx:Form>
+    
+  </mx:HBox>
+</mx:VBox>

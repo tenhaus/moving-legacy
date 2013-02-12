@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow title="Edit mover." xmlns:mx="http://www.macromedia.com/2003/mxml" xmlns:movers="*" 
+	horizontalAlign="center" verticalAlign="middle" show="initFocus()">
+
+
+<mx:Script>
+<![CDATA[
+
+  import com.movers.VO.*;
+
+  [Event("OkEvent")]
+  [Event("DeleteEvent")]
+  [Event("CancelEvent")]
+
+  var moversVO:MoversVO;
+
+  public function initFocus()
+  {
+    Selection.setFocus();
+  }
+
+  public function setResult( eventString ) 
+  {
+    if( eventString == "ok" ) {
+      dispatchEvent( { type: "OkEvent" } );
+    }
+    if( eventString == "delete" ) {
+      dispatchEvent( { type: "DeleteEvent" } );
+    }
+    if( eventString == "cancel" ) {
+      dispatchEvent( { type: "CancelEvent" } );
+    }
+  }
+
+  function formatNumber( item )
+  {
+    var res:String = numberFormatter.format( item.text );
+    if( res != "" ) {
+      item.text = res;
+    }
+    else
+    {
+      item.text = "0";
+    }
+  }
+  
+  function formatCurrency( item )
+  {
+    var res:String = USDformatter.format( item.text );
+  
+    if( res != "" ) {
+      item.text = res;
+    }
+    else
+    {
+      item.text = "$0.00";
+    }
+  }
+
+  public function formatDate( date:Date ):String
+  {
+    return dateFormatter.format( date );
+  }
+	    
+]]>
+</mx:Script>
+
+  <mx:Model id="mover_types" source="movers.xml" />
+  
+  <mx:DateFormatter id="dateFormatter" formatString="MM-DD-YYYY" />
+ 
+  <mx:NumberFormatter precision="0" id="numberFormatter" useThousandsSeparator="false"/>
+
+  <mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+  	decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left"/>
+	    
+
+  <mx:HBox width="100%" horizontalAlign="center">
+    <mx:Form>
+    
+    
+    <mx:FormItem label="Employee" required="true">
+      <mx:ComboBox id="employee" width="170" dataProvider="{ moversVO._movers }"/>
+    </mx:FormItem>
+    
+    <mx:FormItem label="Type" required="true">
+      <mx:ComboBox id="movertype" dataProvider="{ mover_types.mover_type }"/>
+    </mx:FormItem>
+    
+    <mx:FormItem label="Date" required="true">
+      <mx:DateField id="jobdate" dateFormatter="formatDate" />
+    </mx:FormItem>
+    
+    </mx:Form>
+    
+    <mx:Form>
+    
+    <mx:FormItem label="Hours" required="true">
+      <mx:TextInput id="hours" text="0" width="80" enter="formatNumber(hours);" focusOut="formatNumber(hours);" />
+    </mx:FormItem>
+    
+    <mx:FormItem label="Rate" required="true">
+      <mx:TextInput id="rate" text="$0.00" width="80" enter="formatCurrency(rate); setResult( 'ok' );" 
+    	focusOut="formatCurrency(rate);"/>
+    </mx:FormItem>
+    
+    <mx:FormItem label="Commision">
+      <mx:TextInput id="comm" text="$0.00" width="80" enter="formatCurrency(comm); setResult( 'ok' );" 
+    	focusOut="formatCurrency(comm);"/>
+    </mx:FormItem>
+    
+    </mx:Form>
+
+    <mx:Form>
+    
+    <mx:FormItem label="Other">
+      <mx:TextInput id="other" text="$0.00" width="80" enter="formatCurrency(other); setResult( 'ok' );" 
+    	focusOut="formatCurrency(other);"/>
+    </mx:FormItem>
+    
+    <mx:FormItem label="Tip">
+      <mx:TextInput id="tip" text="$0.00" width="80" enter="formatCurrency(tip); setResult( 'ok' );" 
+    	focusOut="formatCurrency(tip);"/>
+    </mx:FormItem>
+    
+    <mx:FormItem label="Deductions">
+      <mx:TextInput id="deduct" text="$0.00" width="80" enter="formatCurrency(deduct); setResult( 'ok' );" 
+    	focusOut="formatCurrency(deduct);"/>
+    </mx:FormItem>
+
+    </mx:Form>
+
+  </mx:HBox>
+  
+  <mx:ControlBar>
+    <mx:Button label="Remove this mover." click="setResult('delete')"/>
+    <mx:Spacer width="100%" />
+    <mx:Button label="Cancel" click="setResult('cancel')" />
+    <mx:Button label="Ok" click="setResult('ok')" />
+  </mx:ControlBar>
+  
+</mx:TitleWindow>

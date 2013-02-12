@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<movers>
+    <mover_type label="" data="" />
+    <mover_type label="Forman" data="F" />
+    <mover_type label="Helper" data="H" />
+    <mover_type label="Driver" data="D" />
+    <mover_type label="Storage" data="S" />    
+</movers>

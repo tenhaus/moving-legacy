@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:VBox width="100%" height="100%" horizontalAlign="center" xmlns:mx="http://www.macromedia.com/2003/mxml" load="initVO();">
+  
+  <mx:Script>
+  <![CDATA[
+  import com.movers.VO.*;
+
+  [Event("MaterialsChanged")]
+  
+  var popup;
+  var materialsVO:MaterialsVO;
+  
+  var doubleClickTime:Number=200;
+  var lastClicked;
+  var lastIndex;
+  
+  public function reset()
+  {
+    materialsVO = new MaterialsVO();
+    materialsVO._materialsList = new Array();
+  }
+  
+  function initVO()
+  {
+     materialsVO = new MaterialsVO();
+     materialsVO._materialsList = new Array();
+  }
+
+  public function setVO( new_materials )
+  {
+    materialsVO = new_materials;
+    materialsVO._materialsList = mx.utils.ArrayUtil.toArray( new_materials._materialsList );
+    
+    for( var i=0; i< materialsVO._materialsList.length; i++ )
+    {
+      var rec = materialsVO._materialsList.getItemAt(i);
+      rec.price = formatVOCurrency( rec.price );
+      rec.packing = formatVOCurrency( rec.packing );
+      rec.unpacking = formatVOCurrency( rec.unpacking );
+      rec.material = formatVOCurrency( rec.material );
+      rec.extra = formatVOCurrency( rec.extra );
+      materialsVO._materialsList.replaceItemAt( i, rec );
+    }
+  }
+		
+  function showWindow(modal) {
+  
+    var rec = dgrid.getItemAt(dgrid.selectedIndex);
+    
+    popup = mx.managers.PopUpManager.createPopUp( _root, com.movers.estimate.MaterialEditor, modal, {deferred: true} );    
+    var delegate = mx.utils.Delegate.create( this, edit_result );
+    popup.addEventListener( "OkEvent", delegate );
+    popup.addEventListener( "DeleteEvent", delegate );
+    popup.addEventListener( "CancelEvent", delegate );
+    popup.centerPopUp();
+    
+    popup.item.text = rec.item;
+    popup.quantity.text = rec.qty;
+    popup.price.text = rec.price;
+    if( rec.pack == "yes" ) {
+      popup.pack.selected = true;
+    }
+    else 
+    {
+      popup.pack.selected = false;
+    }
+    if( rec.unpack == "yes" )
+    {
+      popup.unpack.selected = true;
+    }
+    else
+    {
+      popup.unpack.selected = false;
+    }
+    popup.packing.text = rec.packing;
+    popup.unpacking.text = rec.unpacking;
+    popup.material.text = rec.material;
+    popup.extra.text = rec.extra;
+  }
+
+  public function edit_result( event )
+  {
+    if( event.type == "DeleteEvent" )
+    {      
+      dgrid.dataProvider.removeItemAt( dgrid.selectedIndex );
+    }
+    if( event.type == "OkEvent" )
+    {
+      var rec = dgrid.dataProvider.getItemAt( dgrid.selectedIndex );
+      
+      rec.item = popup.item.text;
+      rec.qty = popup.quantity.text;
+      rec.price = popup.price.text;
+      if( popup.pack.selected )
+      {
+        rec.pack = "yes";
+      }
+      else
+      {
+        rec.pack = "no";
+      }
+      if( popup.unpack.selected )
+      {
+        rec.unpack = "yes";
+      }
+      else
+      {
+        rec.unpack = "no";
+      }
+      rec.packing = popup.packing.text;
+      rec.unpacking = popup.unpacking.text;
+      rec.material = popup.material.text;
+      rec.extra = popup.extra.text
+      dgrid.dataProvider.replaceItemAt( dgrid.selectedIndex, rec );
+    }
+    event.target.deletePopUp();
+    dispatchEvent( { type: "MaterialsChanged", price: materialsVO.getTotalPrice() } );
+  }
+  
+  function editItem( event ) {
+    var dt=new Date();
+    var ms=dt.getTime();
+    var last=lastClicked;
+    lastClicked=ms;
+    if( dgrid.selectedIndex != lastIndex )
+    {
+      lastIndex = dgrid.selectedIndex;
+      return;
+    }
+    if (last==undefined || (ms-last)>doubleClickTime) {
+      return;
+    }
+    lastClicked=0;
+    showWindow(true);
+  }
+
+  function addItem()
+  { 
+    if( item.text == "" )
+    {
+      mx.controls.Alert.show( "Please enter an Item name" );
+      return;
+    }
+    var _pack:String = "no";
+    var _unpack:String = "no";
+    if( pack.selected ) {
+      _pack = "yes";
+    }
+    if( unpack.selected )
+    {
+      _unpack = "yes"
+    }
+    dgrid.dataProvider.addItem( {item:item.text, qty:quantity.text,price:price.text,pack:_pack,unpack:_unpack,
+    				 packing:packing.text,unpacking:unpacking.text,
+				 material:material.text,extra:extra.text } );
+    item.text        = "";
+    quantity.text    = "1";
+    price.text       = "$0.00";
+    pack.selected    = false;
+    unpack.selected  = false;
+    packing.text     = "$0.00";
+    unpacking.text   = "$0.00";
+    material.text    = "$0.00";
+    extra.text       = "$0.00";
+    Selection.setFocus(item);
+    dispatchEvent( { type: "MaterialsChanged", price: materialsVO.getTotalPrice() } );
+  }
+
+  function formatCurrency( item )
+  {
+    var res:String = USDformatter.format( item.text );
+  
+    if( res != "" ) {
+      item.text = res;
+    }
+    else
+    {
+      item.text = "$0.00";
+    }
+  }
+
+  function formatVOCurrency( text )
+  {
+    var res:String = USDformatter.format( text );
+    
+    if( res != "" ) {
+      return(res);
+    }
+    else
+    {
+       return( "$0.00" );
+    }
+  }
+					    
+  
+  function formatNumber( item )
+  {
+    var res:String = numberFormatter.format( item.text );
+    if( res != "" ) {
+      item.text = res;
+    }
+    else
+    {
+      item.text = "0";
+    }
+  }
+  ]]>
+  </mx:Script>
+  
+  <mx:Model id="inputs">
+    <item>{ item.text }</item>
+    <quantity>{ quantity.text  }</quantity>
+    <price>{ price.text }</price>
+  </mx:Model>
+  
+  <mx:StringValidator   field="inputs.item" required="false" maxLength="50" tooLongError="Item name can be no longer than 50 characters."/>
+  <mx:NumberValidator   field="inputs.quantity" />
+  <mx:CurrencyValidator field="inputs.price" />
+  
+  <mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+  	decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left"/> 
+  <mx:NumberFormatter precision="0" id="numberFormatter" useThousandsSeparator="false"/> 
+  <mx:Spacer height="20" />
+  
+  <mx:Label text="* To edit a material double click that material in the list below." />
+
+  <mx:DataGrid width="90%" id="dgrid" height="50%" change="editItem(event);" dataProvider="{materialsVO._materialsList}">
+  <mx:columns>
+    <mx:Array>
+      <mx:DataGridColumn columnName="item" width="200" />
+      <mx:DataGridColumn columnName="qty" headerText="quantity" />
+      <mx:DataGridColumn columnName="price" />
+      <mx:DataGridColumn columnName="pack" />
+      <mx:DataGridColumn columnName="unpack" />
+      <mx:DataGridColumn columnName="packing" />
+      <mx:DataGridColumn columnName="unpacking" />
+      <mx:DataGridColumn columnName="material" />
+      <mx:DataGridColumn columnName="extra" />
+    </mx:Array>
+  </mx:columns>
+  </mx:DataGrid>
+  
+  <mx:Spacer height="5" />
+  
+  <mx:HBox backgroundColor="#F7F7F7" borderThickness="2" width="100%" horizontalAlign="center" borderColor="#CCCCCC" borderStyle="none" >
+    <mx:Form>
+      <mx:FormItem label="Item" required="true">
+        <mx:TextInput width="200" id="item" enter="addItem();"/>
+      </mx:FormItem>
+      <mx:FormItem label="Quantity" required="true">
+        <mx:TextInput width="80" id="quantity" text="1" enter="formatNumber(quantity); addItem();" focusOut="formatNumber(quantity);" />
+      </mx:FormItem>
+      <mx:FormItem label="Price" required="true">
+        <mx:TextInput width="80" id="price" text="$0.00" focusOut="formatCurrency(price);" enter="formatCurrency(price); addItem();"/>
+      </mx:FormItem>
+      <mx:FormItem direction="horizontal">
+        <mx:CheckBox label="Pack" id="pack" />
+        <mx:CheckBox label="Unpack" id="unpack" />
+      </mx:FormItem>
+    </mx:Form>
+    
+    <mx:Form>
+      <mx:FormItem label="Packing">
+        <mx:TextInput width="80" id="packing" text="$0.00" focusOut="formatCurrency(packing);" enter="formatCurrency(packing); addItem();"/>
+      </mx:FormItem>
+      <mx:FormItem label="Unpacking">
+        <mx:TextInput width="80" id="unpacking" text="$0.00" focusOut="formatCurrency(unpacking);" enter="formatCurrency(unpacking); addItem();"/>
+      </mx:FormItem>
+      <mx:FormItem label="Material">
+        <mx:TextInput width="80" id="material" text="$0.00" focusOut="formatCurrency(material);" enter="formatCurrency(material); addItem();"/>
+      </mx:FormItem>
+      <mx:FormItem label="Extra">
+        <mx:TextInput width="80" id="extra" text="$0.00" focusOut="formatCurrency(extra);" enter="formatCurrency(extra); addItem();"/>
+      </mx:FormItem>
+      
+    </mx:Form>
+    
+    <mx:Form>
+      <mx:FormItem>
+        <mx:Button label="Add Item" click="addItem();" />
+      </mx:FormItem>
+    </mx:Form>
+    
+  </mx:HBox>
+  
+</mx:VBox>

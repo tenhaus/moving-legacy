@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Panel width="100%" height="100%" title="Movers Payroll." horizontalAlign="right" xmlns:mx="http://www.macromedia.com/2003/mxml">
+
+<mx:Script>
+<![CDATA[
+  import com.movers.Utility;
+
+  [Event("SubmitEvent")]
+  [Event("LoadJobEvent")]
+  
+  var doubleClickTime:Number=200;
+  var lastClicked;
+  var lastIndex;
+  
+  
+  function checkDoubleClick( event ) {
+    var dt=new Date();
+    var ms=dt.getTime();
+    var last=lastClicked;
+    lastClicked=ms;
+    
+    if( dgrid.selectedIndex != lastIndex )
+    {
+      lastIndex = dgrid.selectedIndex;
+      return;
+    }
+    if (last==undefined || (ms-last)>doubleClickTime) {
+      return;
+    }
+    lastClicked=0;
+    
+    var rec = dgrid.dataProvider.getItemAt( dgrid.selectedIndex );
+    dispatchEvent( { type: "LoadJobEvent", job_id: Number(rec.job), company_id: Number(rec.company_id) } )
+  }
+
+  
+  public function cancel()
+  {
+    dispatchEvent( { type: "SubmitEvent" } );
+  }
+
+  public function resetDates()
+  {
+    var d:Date = new Date();
+
+    from_date.selectedDate = d;
+    to_date.selectedDate = d;
+  }
+
+  public function fetchData()
+  {
+    var mover_name:String = name.selectedItem.data;
+    var from:String = formatDate( from_date.selectedDate );
+    var to:String   = formatDate( to_date.selectedDate );
+    var company_id:Number = _global.session._company_id;
+
+    dgrid.dataProvider = null;
+    if( from != "" && to != "" ) {
+      getPayroll.getMoversPayroll( mover_name, from, to, company_id );
+    }
+  }
+
+  public function getPayroll_Result( result )
+  {
+    for( var i=0; i<result.length; i++ )
+    {
+      var rec = result.getItemAt(i);
+     
+      rec.date = formatDate(rec.date);
+      rec.rate = USDformatter.format( rec.rate );
+      rec.comm = USDformatter.format( rec.comm );
+      rec.other = USDformatter.format( rec.other );
+      rec.deduct = USDformatter.format( rec.deduct );
+      rec.tip = USDformatter.format( rec.tip );
+      rec.total = USDformatter.format( rec.total );
+    }
+    dgrid.dataProvider = result;
+    updateTitle();
+  }
+  
+  public function getMovers_Result( result )
+  {
+    var tmp:Array = new Array();
+    tmp.push( {data: "", label: "" } );
+    
+    for( var i=0; i< result.length; i++ )
+    {
+      tmp.push( {data: result.getItemAt(i).name, label: result.getItemAt(i).name } );
+    }
+    name.dataProvider = tmp;
+  }
+ 
+  public function updateTitle()
+  {
+    var comm     : Number = 0;
+    var other    : Number = 0;
+    var deduct   : Number = 0;
+    var tips     : Number = 0;
+    var hours    : Number = 0;
+    var total    : Number = 0;
+    var paid     : Number = 0;
+    var balance  : Number = 0;
+    
+    for( var i=0; i<dgrid.dataProvider.getLength(); i++ )
+    {
+      var rec = dgrid.dataProvider.getItemAt(i);
+      
+      comm   += Utility.stripFormatting( rec.comm );
+      other  += Utility.stripFormatting( rec.other );
+      deduct += Utility.stripFormatting( rec.deduct );
+      tips   += Utility.stripFormatting( rec.tip );
+      hours  += Number( rec.hours );
+      total  += Utility.stripFormatting( rec.total );
+      if( rec.paid == "Y" )
+      {
+        paid += Utility.stripFormatting( rec.total );
+      }
+    }    
+    balance = total - paid;
+
+    this.title = "Movers Payroll.  Hours: " + hours + ".  Balance: " + USDformatter.format( balance ) + ".";
+  }
+
+  public function formatDate( date:Date ):String
+  {
+    return dateFormatter.format( date );
+  }
+  
+  public function subtractDay()
+  {
+    var util:Utility = new Utility;
+    var d:Date = from_date.selectedDate;
+    var d2:Date = util.subtractDay( d );
+    
+    from_date.selectedDate = d2;
+    to_date.selectedDate   = d2;
+    
+    fetchData();
+  }
+
+  public function addDay()
+  {    
+    var util:Utility = new Utility;
+    var d:Date = from_date.selectedDate;
+    var d2:Date = util.addDay( d );
+    
+    from_date.selectedDate = d2;
+    to_date.selectedDate   = d2;
+    
+    fetchData();
+  }
+
+  public function changeStatus()
+  {
+    var changed:Array = new Array();
+    var tmp:Array = dgrid.selectedIndices;
+    var data:String = mover_change_status.selectedItem.data;
+    
+    for( var i=0; i< tmp.length; i++ )
+    {
+      var rec = dgrid.dataProvider.getItemAt( tmp[i] );
+      if( data == "Paid" )
+      {
+        rec.paid = "Y";
+        changed.push( { paid: "Y", mover_job_id: rec.mover_job_id } );
+      }
+      if( data == "Unpaid" )
+      {
+        rec.paid = "N";
+        changed.push( { paid: "N", mover_job_id: rec.mover_job_id } );
+      }
+      dgrid.dataProvider.replaceItemAt( tmp[i], rec );
+    }
+    mover_change_status.selectedIndex = 0;
+    
+    updatePayroll.updateMoversPay( changed );
+
+    updateTitle();
+  }
+
+  public function updatePayroll_Result( result )
+  {
+    if( result == "true" )
+    {
+      mx.controls.Alert.show( "Updated payroll successfully." );
+    }
+    else 
+    {
+      mx.controls.Alert.show( result );
+    }
+  }
+  
+  public function selectMovers()
+  {
+    var data:String = mover_select.selectedItem.data;
+
+    if( data == "None" )
+    {
+      dgrid.selectedIndex = null;
+    }
+    if( data == "All" )
+    {
+      var tmp:Array = new Array();
+      
+      for( var i=0; i< dgrid.dataProvider.getLength(); i++ )
+      {
+        tmp.push(i);
+      }
+      dgrid.selectedIndices = tmp;
+    }
+    if( data == "Paid" )
+    {
+      var tmp:Array = new Array();
+      
+      for( var i=0; i< dgrid.dataProvider.getLength(); i++ )
+      {
+        var rec = dgrid.getItemAt(i);
+	if( rec.paid == "Y" )
+	{
+          tmp.push(i);
+	}
+      }
+      dgrid.selectedIndices = tmp;
+    }
+    if( data == "Unpaid" )
+    {
+      var tmp:Array = new Array();
+      
+      for( var i=0; i< dgrid.dataProvider.getLength(); i++ )
+      {
+        var rec = dgrid.getItemAt(i);
+	if( rec.paid == "N" )
+	{
+          tmp.push(i);
+	}
+      }
+      dgrid.selectedIndices = tmp;
+    }
+    
+    mover_select.selectedIndex = 0;
+  }
+
+  public function showDetails()
+  {     
+    var popup = mx.managers.PopUpManager.createPopUp( _root, com.movers.dispatch.MoverPayDetails, true, {deferred: true} );
+    
+    var comm     : Number = 0;
+    var other    : Number = 0;
+    var deduct   : Number = 0;
+    var tips     : Number = 0;
+    var hours    : Number = 0;
+    var total    : Number = 0;
+    var paid     : Number = 0;
+    var balance  : Number = 0;
+    
+    
+    for( var i=0; i<dgrid.dataProvider.getLength(); i++ )
+    {
+      var rec = dgrid.dataProvider.getItemAt(i);
+      
+      comm   += Utility.stripFormatting( rec.comm );
+      other  += Utility.stripFormatting( rec.other );
+      deduct += Utility.stripFormatting( rec.deduct );
+      tips   += Utility.stripFormatting( rec.tip );
+      hours  += Number( rec.hours );
+      total  += Utility.stripFormatting( rec.total );
+      if( rec.paid == "Y" )
+      {
+        paid += Utility.stripFormatting( rec.total );
+      }
+				  
+    }
+    balance = total - paid;
+
+    popup.comm_label.text = USDformatter.format( comm );
+    popup.other_label.text = USDformatter.format( other );
+    popup.deduct_label.text = USDformatter.format( deduct );
+    popup.tip_label.text = USDformatter.format( tips );
+    popup.hours_label.text = hours;
+    popup.total_label.text = USDformatter.format( total );
+    popup.balance_label.text = USDformatter.format( balance );
+    popup.paid_label.text = USDformatter.format( paid );
+      
+    popup.addEventListener( "OkEvent", popup.deletePopUp );	  
+    popup.centerPopUp();
+  }
+
+  public function printPay()
+  {
+    var mover_name : String;
+    var from       : String;
+    var to         : String;
+    
+    mover_name = name.selectedItem.data;
+    from = from_date.text;
+    to   = to_date.text;
+
+    printPayroll.savePrint( mover_name, from, to, _global.session._company_id );
+  }
+
+  public function printPayroll_Result( result )
+  {
+    var tmp = new LoadVars();
+    tmp.print_id = result;
+    tmp.send( "http://www.globalmover.net/smartmove63/Payroll", "_blank", "POST" );
+  }
+
+]]>
+</mx:Script>
+
+
+<mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+	decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left"/>
+
+<mx:DateFormatter id="dateFormatter" formatString="MM-DD-YYYY" />
+
+<mx:RemoteObject id="util_add_mover" source="com.movers.reports.CancelledJobs"
+	result="" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="AddMover" />
+</mx:RemoteObject>
+
+<mx:RemoteObject id="getMovers" source="com.movers.session.Utility"
+	result="getMovers_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="getMovers" />
+</mx:RemoteObject>
+	  
+<mx:RemoteObject id="getPayroll" source="com.movers.session.Utility"
+	result="getPayroll_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="getMoversPayroll" />
+</mx:RemoteObject>
+
+<mx:RemoteObject id="printPayroll" source="com.movers.session.Utility"
+	result="printPayroll_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="savePrint" />
+</mx:RemoteObject>
+
+<mx:RemoteObject id="updatePayroll" source="com.movers.session.Utility"
+	result="updatePayroll_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="updateMoversPay" />
+</mx:RemoteObject>
+
+
+<mx:Model id="select_types" source="select.xml" />
+<mx:Model id="select_paid" source="movers_paid.xml" />
+
+<mx:DataGrid id="dgrid" width="100%" height="100%" multipleSelection="true" change="checkDoubleClick()">
+  <mx:columns>
+    <mx:Array>
+      <mx:DataGridColumn columnName="date" width="100" />
+      <mx:DataGridColumn columnName="job" />
+      <mx:DataGridColumn columnName="type" width="50" />
+      <mx:DataGridColumn columnName="hours" width="50" />
+      <mx:DataGridColumn columnName="rate" />
+      <mx:DataGridColumn columnName="comm" />
+      <mx:DataGridColumn columnName="other" />
+      <mx:DataGridColumn columnName="deduct" />
+      <mx:DataGridColumn columnName="tip" />
+      <mx:DataGridColumn columnName="total" />
+      <mx:DataGridColumn columnName="paid" width="50" />
+    </mx:Array>
+  </mx:columns>
+</mx:DataGrid>
+
+<mx:ControlBar horizontalAlign="right">
+
+<mx:VBox width="100%" horizontalAlign="right">
+
+<mx:HBox width="100%" horizontalAlign="left">
+
+<mx:FormItem label="Select:">
+  <mx:ComboBox id="mover_select" dataProvider="{ select_types.item }" change="selectMovers()" />
+</mx:FormItem>
+
+<mx:FormItem label="Mark as:">
+  <mx:ComboBox id="mover_change_status" dataProvider="{ select_paid.item }" change="changeStatus()" />
+</mx:FormItem>
+
+<mx:Spacer width="100%" />
+
+<mx:Button label="details" click="showDetails()" />
+<mx:Button label="print" click="printPay()" />
+
+</mx:HBox>
+
+<mx:Spacer height="5" />
+
+<mx:HBox height="100%" width="100%">
+
+      <mx:FormItem label="Name">
+        <mx:ComboBox width="180" id="name" load="getMovers.getMovers( _global.session._company_id )" change="fetchData()" />
+      </mx:FormItem>
+
+      <mx:Spacer width="100%" />
+
+      <mx:FormItem label="From">
+        <mx:DateField id="from_date" dateFormatter="formatDate" load="resetDates();" change="fetchData()" />
+      </mx:FormItem>
+
+      <mx:FormItem label="To">
+        <mx:DateField id="to_date" dateFormatter="formatDate" load="resetDates();" change="fetchData()" />
+      </mx:FormItem>
+
+ </mx:HBox>
+
+</mx:VBox>    
+</mx:ControlBar>
+
+</mx:Panel>

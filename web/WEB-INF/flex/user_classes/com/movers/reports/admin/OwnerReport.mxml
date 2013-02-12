@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Panel width="100%" height="100%" title="Owner Report." horizontalAlign="right" xmlns:mx="http://www.macromedia.com/2003/mxml">
+
+<mx:Script>
+
+<![CDATA[
+import com.movers.Utility;
+import com.movers.VO.OwnerReportVO;
+import com.movers.VO.OwnerMonthlyReportVO;
+
+[Event("LoadJobEvent")]
+
+var doubleClickTime:Number=200;
+var lastClicked;
+var lastIndex;
+
+
+function checkDoubleClick( event ) {
+  var dt=new Date();
+  var ms=dt.getTime();
+  var last=lastClicked;
+  lastClicked=ms;
+
+  if( dgrid.selectedIndex != lastIndex )
+  {
+    lastIndex = dgrid.selectedIndex;
+    return;
+  }
+  if (last==undefined || (ms-last)>doubleClickTime) {
+    return;
+  }
+  lastClicked=0;
+
+  var rec = dgrid.dataProvider.getItemAt( dgrid.selectedIndex );
+  dispatchEvent( { type: "LoadJobEvent", job_id: Number(rec.job), company_id: Number(rec.company_id) } );
+}
+
+public function formatDate( date:Date ):String
+{
+  return dateFormatter.format( date );
+}
+
+public function handleResults( results )
+{
+  if( results.getLength() != undefined )
+  {
+    this.title = "Owner Report.  Total of " + results.getLength() + " jobs.";
+  }
+
+  var total:Number     = 0;
+  var estimated:Number = 0;
+
+  for( var i=0; i<results.getLength(); i++ )
+  {
+    var rec = results.getItemAt(i);
+
+    if( Number(rec.estimated) )
+    {
+      estimated += Number( rec.estimated );
+    }
+    if( Number(rec.total) )
+    {
+      total += Number( rec.total );
+    }
+
+    rec.date = formatDate( rec.date );
+    rec.materials = USDformatter.format( rec.materials );
+    rec.estimated = USDformatter.format( rec.estimated );
+    rec.deductions = USDformatter.format( rec.deductions );
+    rec.total = USDformatter.format( rec.total );
+  }
+  //estimated_total_label.text = "Estimated: " + USDformatter.format( estimated );
+  //done_total_label.text = "Actual: " + USDformatter.format( total );
+
+  dgrid.dataProvider = results;
+  calcProcessing();
+  calcCommission();
+}
+
+
+public function fetchData() 
+{
+  if( from_date.selectedDate == undefined || to_date.selectedDate == undefined ) 
+  {
+    return;
+  }
+  if( agent_selector.selectedItem.data == "" )
+  {
+    dgrid.dataProvider = null;
+    this.title = "Owner Report.";
+    return;
+  }
+
+  var company_id:Number = _global.session._company_id;
+  report.getOwnerReport( agent_selector.selectedItem.data, formatDate(from_date.selectedDate), formatDate(to_date.selectedDate), company_id );
+}
+public function resetDate()
+{
+  var d:Date = new Date();
+  from_date.selectedDate = d;
+  to_date.selectedDate = d;
+  fetchData();
+}
+
+public function subtractDay()
+{
+  var util:Utility = new Utility;
+  var d:Date = from_date.selectedDate;
+  var d2:Date = util.subtractDay( d );
+
+  from_date.selectedDate = d2;
+  to_date.selectedDate   = d2;
+
+  fetchData();
+}
+
+public function addDay()
+{
+  var util:Utility = new Utility;
+  var d:Date = from_date.selectedDate;
+  var d2:Date = util.addDay( d );
+
+  from_date.selectedDate = d2;
+  to_date.selectedDate   = d2;
+
+  fetchData();
+}
+
+public function getAgents_Result( result )
+{
+  var tmpAgents = new Array();
+  for( var i=0; i< result.length; i++ )
+  {
+    tmpAgents.push( {data: result.getItemAt(i).name, label: result.getItemAt(i).name, agent_id: result.getItemAt(i).agent_id} );
+  }
+  agent_selector.dataProvider = tmpAgents;
+}
+
+public function calcProcessing()
+{
+  for( var i=0; i< dgrid.dataProvider.getLength(); i++ )
+  {
+    var rec = dgrid.dataProvider.getItemAt(i);
+    rec.fee       = Utility.stripFormatting(rec.total) * ( processing_stepper.value / 100 );
+    rec.fee       = USDformatter.format( rec.fee );
+    dgrid.dataProvider.replaceItemAt( i, rec );
+  }
+}
+
+public function calcCommission()
+{
+  for( var i=0; i< dgrid.dataProvider.getLength(); i++ )
+  {
+    var rec = dgrid.dataProvider.getItemAt(i);
+    rec.commission = Utility.stripFormatting(rec.total) * ( comm_stepper.value / 100 );
+    rec.commission = USDformatter.format( rec.commission );
+    dgrid.dataProvider.replaceItemAt( i, rec );
+  }
+}
+
+
+public function getMonthlyDetails()
+{
+  if( from_date.displayedMonth != to_date.displayedMonth )
+  {
+    mx.controls.Alert.show( "You must have only one month selected to edit monthly deductions." );
+    return;
+  }
+  
+  if( from_date.displayedYear != to_date.displayedYear )
+  {
+    mx.controls.Alert.show( "Both months selected must be in the same year to edit monthly deductions." );
+    return;
+  }
+  
+  getMonthlyForDetails.getMonthlyOwnerDeductions( agent_selector.selectedItem.agent_id, from_date.displayedMonth, from_date.displayedYear );
+}
+
+
+public function showDetails( result )
+{
+  var total:Number = 0;
+  var materials:Number = 0;
+  var estimated:Number = 0;
+  var comm:Number = 0;
+  var labor:Number = 0;
+  var advance:Number = 0;
+  var material_charge:Number = 0;
+  var monthly_fee:Number = 0;
+  var fee:Number = 0;
+  var other:Number = 0;
+
+  for( var i=0; i<dgrid.dataProvider.length; i++ )
+  {
+    var rec = dgrid.dataProvider.getItemAt(i);
+    total += Utility.stripFormatting( rec.total );
+    
+    materials += Utility.stripFormatting( rec.materials );
+    estimated += Utility.stripFormatting( rec.estimated );    
+    comm += Utility.stripFormatting( rec.commission );
+    fee += Utility.stripFormatting( rec.fee );
+
+    // these do not need to be stripped
+    
+    labor += Number( rec.labor_charge );
+    //advance += Number( rec.advance_charge );
+    //material_charge += Number( rec.materials_charge );
+    //monthly_fee += Number( rec.monthly_fee );
+    other += Number( rec.other_1 + rec.other_2 + rec.other_3 );
+    
+    // end of do not to be stripped
+  }
+  
+  var popup = mx.managers.PopUpManager.createPopUp( _root, com.movers.reports.admin.OwnerPayDetails, true, {deferred: true} );
+
+  popup.total_label.text = USDformatter.format( total );
+  popup.materials_label.text = USDformatter.format( materials );
+  popup.estimated_label.text = USDformatter.format( estimated );
+  popup.commission_label.text = USDformatter.format( comm );
+  popup.processing_label.text = USDformatter.format( fee );
+  
+  popup.labor_label.text = USDformatter.format( labor );
+  popup.royalties_label.text = USDformatter.format( result._royalties );
+  popup.truck_label.text = USDformatter.format( result._truck );
+  popup.insurance_label.text = USDformatter.format( result._insurance );
+  popup.material_charge_label.text = USDformatter.format( result._material );
+  popup.monthly_fee_label.text = USDformatter.format( result._monthly_fee );
+  popup.other_label.text = USDformatter.format( other + result._other_1 + result._other_2 + result._other_3 );
+ 
+  popup.addEventListener( "OkEvent", popup.deletePopUp );
+  popup.centerPopUp();
+}
+
+public function edit_result( event )
+{
+  if( event.type == "OkEvent" )
+  {
+
+    var deductions:Number = 0;
+    var rec = dgrid.dataProvider.getItemAt( dgrid.selectedIndex );
+    
+    var vo:OwnerReportVO = event.target.getVO();
+
+    rec.labor_charge     = vo._labor_charge;
+    rec.other_1          = vo._other_1;
+    rec.other_2          = vo._other_2;
+    rec.other_3          = vo._other_3;
+
+    deductions += rec.labor_charge;
+    deductions += rec.other_1;
+    deductions += rec.other_2;
+    deductions += rec.other_3;
+
+    rec.deductions = USDformatter.format( deductions );
+
+    vo._job_id     = rec.job;
+    vo._company_id = rec.company_id;
+    
+
+    update.updateOwnerReport( vo );
+    dgrid.dataProvider.replaceItemAt( dgrid.selectedIndex, rec );
+    event.target.deletePopUp();
+  }
+}
+
+public function editDeductions()
+{
+  if( dgrid.selectedIndex == null )
+  {
+    mx.controls.Alert.show( "Please select a job first." );
+    return;
+  }
+  var popup = mx.managers.PopUpManager.createPopUp( _root, com.movers.reports.admin.OwnerDeductions, true, {deferred: true} );
+  
+  var rec = dgrid.dataProvider.getItemAt( dgrid.selectedIndex );
+  
+  popup.labor.text = USDformatter.format( rec.labor_charge );
+  popup.other_1.text = USDformatter.format( rec.other_1 ); 
+  popup.other_2.text = USDformatter.format( rec.other_2 ); 
+  popup.other_3.text = USDformatter.format( rec.other_3 ); 
+
+  var delegate = mx.utils.Delegate.create( this, edit_result );
+  popup.addEventListener( "OkEvent", delegate );
+  popup.addEventListener( "CancelEvent", popup.deletePopUp );
+  popup.centerPopUp();
+}
+
+
+public function editMonthlyDeductions()
+{
+  if( from_date.displayedMonth != to_date.displayedMonth )
+  {
+    mx.controls.Alert.show( "You must have only one month selected to edit monthly deductions." );
+    return;
+  }
+  
+  if( from_date.displayedYear != to_date.displayedYear )
+  {
+    mx.controls.Alert.show( "Both months selected must be in the same year to edit monthly deductions." );
+    return;
+  }
+  
+  getMonthly.getMonthlyOwnerDeductions( agent_selector.selectedItem.agent_id, from_date.displayedMonth, from_date.displayedYear );
+}
+
+public function getMonthlyOwnerDeductions_Result( result )
+{
+  var popup = mx.managers.PopUpManager.createPopUp( _root, com.movers.reports.admin.MonthlyDeductions, true, {deferred: true} );
+  popup.setVO( result );
+  var delegate = mx.utils.Delegate.create( this, editMonthlyDeductions_Result );
+  popup.addEventListener( "OkEvent", delegate );
+  popup.addEventListener( "CancelEvent", popup.deletePopUp );
+  popup.centerPopUp();
+}
+
+public function printInvoice( result )
+{
+  var invoice = new LoadVars();
+  invoice.form = "agent_invoice";
+  invoice.invoice_date = from_date.text;
+  invoice.agent_name = agent_selector.selectedItem.data;
+
+  invoice.royalties_amount = USDformatter.format( result._royalties );
+  invoice.monthly_fee_amount = USDformatter.format( result._monthly_fee );
+  invoice.truck_amount = USDformatter.format( result._truck );
+  invoice.insurance_amount = USDformatter.format( result._insurance );  
+  invoice.materials_amount = USDformatter.format( result._material );
+  
+  var labor:Number = 0;
+  var commission:Number = 0;
+  var processing:Number = 0;
+  var other:Number = 0;
+  var total:Number = 0;
+  
+  for( var i=0; i<dgrid.dataProvider.length; i++ )
+  {
+    var rec = dgrid.dataProvider.getItemAt( i );
+    labor += rec.labor_charge;
+    commission += Utility.stripFormatting( rec.commission );
+    processing += Utility.stripFormatting( rec.fee );
+    other += rec.other_1 + rec.other_2 + rec.other_3;
+  }
+
+
+  other += result._other_1 + result._other_2 + result._other_3;
+  
+  invoice.other_amount = USDformatter.format( other );  
+  invoice.labor_amount = USDformatter.format( labor );
+  invoice.commision_amount = USDformatter.format( commission );
+  invoice.processing_amount = USDformatter.format( processing );  
+  
+  total =   other + labor + commission + processing;
+  total +=  result._royalties + result._monthly_fee + result._truck + result._insurance + result._material;
+  
+  invoice.total_amount = USDformatter.format( total );
+  
+  invoice.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );
+}
+
+public function getMonthlyInvoice()
+{
+  if( from_date.displayedMonth != to_date.displayedMonth )
+  {
+    mx.controls.Alert.show( "You must have only one month selected to edit monthly deductions." );
+    return;
+  }
+  
+  if( from_date.displayedYear != to_date.displayedYear )
+  {
+    mx.controls.Alert.show( "Both months selected must be in the same year to edit monthly deductions." );
+    return;
+  }
+  
+  getMonthlyForInvoice.getMonthlyOwnerDeductions( agent_selector.selectedItem.agent_id, from_date.displayedMonth, from_date.displayedYear );
+}
+
+public function editMonthlyDeductions_Result( event )
+{
+  var vo:OwnerMonthlyReportVO = event.target.getVO();
+  vo._agent_id = agent_selector.selectedItem.agent_id;
+  vo._agent = agent_selector.selectedItem.data;
+
+  vo._month = from_date.displayedMonth;
+  vo._year  = from_date.displayedYear;
+  
+  
+  updateMonthly.updateOwnerMonthlyDeductions( vo );
+  event.target.deletePopUp();
+}
+
+
+public function update_Result( result )
+{
+  if( result == true ) {
+    mx.controls.Alert.show( "Database updated successfully." );
+  }
+}
+
+public function updateOwnerMonthlyDeductions_Result( result )
+{
+  if( result == true )
+  {
+    mx.controls.Alert.show( "Database updated successfully" );
+  }
+}
+
+]]>
+</mx:Script>
+
+<mx:Model id="select_types" source="select.xml" />
+<mx:Model id="select_paid" source="movers_paid.xml" />
+<mx:Model id="companies" source="companies.xml" />
+
+<mx:DateFormatter id="dateFormatter" formatString="MM-DD-YYYY" />
+<mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+	decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left"/>
+
+<mx:RemoteObject id="report" source="com.movers.session.Utility"
+	result="handleResults( event.result );" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="getOwnerReport" />
+</mx:RemoteObject>
+
+<mx:RemoteObject id="agents" source="com.movers.session.Utility"
+	result="getAgents_Result( event.result );" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="getAgents" />
+</mx:RemoteObject>
+	  
+<mx:RemoteObject id="update" source="com.movers.session.Utility"
+	result="update_Result( event.result );" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="updateOwnerReport" />
+</mx:RemoteObject>
+	  
+<mx:RemoteObject id="updateMonthly" source="com.movers.session.Utility"
+	result="updateOwnerMonthlyDeductions_Result( event.result );" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="updateOwnerMonthlyDeductions" />
+</mx:RemoteObject>
+
+<mx:RemoteObject id="getMonthly" source="com.movers.session.Utility"
+	result="getMonthlyOwnerDeductions_Result( event.result );" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="getMonthlyOwnerDeductions" />
+</mx:RemoteObject>
+	  
+<mx:RemoteObject id="getMonthlyForDetails" source="com.movers.session.Utility"
+	result="showDetails( event.result );" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="getMonthlyOwnerDeductions" />
+</mx:RemoteObject>
+	  
+<mx:RemoteObject id="getMonthlyForInvoice" source="com.movers.session.Utility"
+	result="printInvoice( event.result );" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="getMonthlyOwnerDeductions" />
+</mx:RemoteObject>
+	  
+	  
+<mx:DataGrid id="dgrid" width="100%" height="100%" change="checkDoubleClick()">
+  <mx:columns>
+    <mx:Array>
+      <mx:DataGridColumn columnName="date" />
+      <mx:DataGridColumn columnName="job" />
+      <mx:DataGridColumn columnName="total" />
+      <mx:DataGridColumn columnName="materials" />
+      <mx:DataGridColumn columnName="estimated" />
+      <mx:DataGridColumn columnName="commission" />
+      <mx:DataGridColumn columnName="fee" />
+      <mx:DataGridColumn columnName="deductions" />
+    </mx:Array>
+  </mx:columns>
+</mx:DataGrid>
+							    
+
+<mx:ControlBar horizontalAlign="right">
+
+        <mx:VBox width="100%">
+
+	<mx:HBox width="100%">
+	 
+	  <mx:Label text="Agent" />
+	  <mx:ComboBox id="agent_selector" load="agents.getAgents( _global.session._company_id )" change="fetchData()" />
+	  <mx:Button label="print invoice" click="getMonthlyInvoice()" />
+	 
+	 <mx:Spacer width="100%" />
+    
+	  <mx:Button label="job deductions" click="editDeductions()" />
+	  <mx:Button label="monthly deductions" click="editMonthlyDeductions()" />
+	  <mx:Button label="monthly details" click="getMonthlyDetails()" />
+
+	</mx:HBox>
+
+	<mx:Spacer height="5" />
+	
+	<mx:HBox width="100%">
+	  
+	  
+	  
+	  <mx:Label text="Commission %" />
+	  <mx:NumericStepper id="comm_stepper" width="50" minimum="0" maximum="100" value="20" change="calcCommission()" />
+	  
+	  <mx:Label text="Processing %" />
+	  	
+	  <mx:NumericStepper id="processing_stepper" width="50" minimum="0" maximum="100" value="2" change="calcProcessing()" />
+	  
+	  <mx:Spacer width="100%" />
+	  
+	  <mx:Label text="From" />
+	  <mx:DateField id="from_date" dateFormatter="formatDate" change="fetchData();" />
+	  <mx:Label text="To" />
+	  <mx:DateField id="to_date" dateFormatter="formatDate" change="fetchData();" load="resetDate()" />
+	  <mx:Spacer width="5" />
+	  
+	  
+	  <mx:Image source="@Embed('../../assets/back.png')" toolTip="Previous Day" mouseDown="subtractDay()" />
+	  <mx:Image source="@Embed('../../assets/gtk-refresh.png')" toolTip="Reload" mouseDown="fetchData()" />	  
+          <mx:Image source="@Embed('../../assets/forward.png')" toolTip="Next Day" mouseDown="addDay()" />
+
+	</mx:HBox>
+
+	</mx:VBox>
+				
+</mx:ControlBar>
+</mx:Panel>

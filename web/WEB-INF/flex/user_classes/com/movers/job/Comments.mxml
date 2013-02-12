@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:VBox width="100%" height="100%" verticalAlign="middle" horizontalAlign="center" 
+	xmlns:mx="http://www.macromedia.com/2003/mxml" load="initVO();">   
+  <mx:Script>
+  <![CDATA[
+  import com.movers.VO.*;
+  import mx.validators.*;
+  
+  var commentVO:CommentVO;
+  
+  public function initVO()
+  {
+    commentVO = new CommentVO();
+  }
+  public function isValid() :Boolean
+  {
+    return( Validator.isStructureValid(this,'comments_model') );
+  }
+
+  public function reset()
+  {
+    commentVO = new CommentVO();
+    syncInputs();
+  }
+
+  public function setVO( new_comment )
+  {
+    commentVO = new_comment;
+    syncInputs();
+  }
+
+  public function syncInputs()
+  {
+    comments_dp.comment_job = commentVO._comment_job;
+    comments_dp.comment_office = commentVO._comment_office;
+    comments_dp.comment_delivery = commentVO._comment_delivery;
+  }    
+
+  function validateForm( validator, value )
+  {
+    Validator.isValid( this, 'comments_model.comment_job' );
+    Validator.isValid( this, 'comments_model.comment_office' );
+    Validator.isValid( this, 'comments_model.comment_delivery' );
+    
+    if( validator.hasErrors() )
+      return;		  
+  }
+  
+  function getVars() : LoadVars
+  {
+    var vars:LoadVars = new LoadVars();
+    vars.comments_job = commentVO._comment_job;
+    vars.comments_delivery = commentVO._comment_delivery;
+
+    return( vars );
+  }
+       
+  ]]>
+  </mx:Script>
+
+  <mx:Model id="comments_model">
+    <comment_job>{ jobcomment.text }</comment_job>
+    <comment_office>{ officecomment.text }</comment_office>
+    <comment_delivery>{ deliverycomment.text }</comment_delivery>
+  </mx:Model>
+  
+  <mx:Model id="comments_dp">
+    <comment_job>{ jobcomment.text }</comment_job>
+    <comment_office>{ officecomment.text }</comment_office>
+    <comment_delivery>{ deliverycomment.text }</comment_delivery>
+  </mx:Model>
+		  
+
+  <mx:Binding source="comments_model.comment_job" destination="commentVO._comment_job" />
+  <mx:Binding source="comments_model.comment_office" destination="commentVO._comment_office" />
+  <mx:Binding source="comments_model.comment_delivery" destination="commentVO._comment_delivery" />
+  
+  <mx:Validator field="comments_model" validate="validateForm( event.validator, event.value );" listener="this" /> 
+  
+  <mx:StringValidator field="comments_model.comment_job" maxLength="5000" 
+  	required="false" tooLongError="Comments can be no longer than 5,000 characters." />
+  <mx:StringValidator field="comments_model.comment_office" maxLength="5000" 
+  	required="false" tooLongError="Comments can be no longer than 5,000 characters." />
+  <mx:StringValidator field="comments_model.comment_delivery" maxLength="5000" 
+  	required="false" tooLongError="Comments can be no longer than 5,000 characters." />
+   
+  <mx:VBox width="100%" height="100%" backgroundColor="#f7f7f7" horizontalAlign="center">
+    <mx:Label text="Job Comments" fontWeight="bold" />
+    <mx:TextArea id="jobcomment" height="100%" width="55%" dropShadow="true" text="{ comments_dp.comment_job }" maxChars="5000"/>
+  </mx:VBox>
+  
+  <mx:VBox width="100%" height="100%" horizontalAlign="center">
+    <mx:Label text="Office Comments" fontWeight="bold" />
+    <mx:TextArea id="officecomment" height="100%" width="55%" dropShadow="true" maxChars="5000" text="{ comments_dp.comment_office }"/>
+  </mx:VBox>
+  
+  <mx:VBox width="100%" height="100%" backgroundColor="#f7f7f7" horizontalAlign="center">
+    <mx:Label text="Delivery Comments" fontWeight="bold" />
+    <mx:TextArea id="deliverycomment" height="100%" width="55%" dropShadow="true" maxChars="5000" text="{ comments_dp.comment_delivery }"/>
+  </mx:VBox>
+
+</mx:VBox>

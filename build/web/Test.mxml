@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Application xmlns:mx="http://www.macromedia.com/2003/mxml" backgroundColor="#FFFFFF">
+
+	<mx:Script>
+    <![CDATA[
+ 	]]>
+    </mx:Script>
+
+	<mx:Panel>
+	  <mx:DateField id="df" change="mx.controls.Alert.show( 'its ' + df.monthNames[df.displayedMonth] + ' ' + df.displayedYear )" />
+	</mx:Panel>
+
+</mx:Application>

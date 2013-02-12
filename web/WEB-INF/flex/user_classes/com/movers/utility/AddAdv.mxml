@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Panel title="Add Advertising Source." xmlns:mx="http://www.macromedia.com/2003/mxml" creationPolicy="all">
+
+  <mx:RemoteObject id="sessionUtil" source="com.movers.session.Utility"
+  	result="addAdv_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+    <mx:method name="addAdv" />
+  </mx:RemoteObject>
+		  
+
+  <mx:Script>
+  <![CDATA[
+  [Event("SubmitEvent")]
+
+  public function reset()
+  {
+    new_adv.text = "";
+  }
+
+  public function addAdv_Result( result )
+  {  
+    if( result == "true" )
+    {
+      mx.controls.Alert.show( "Database updated successfully." );
+      reset();
+      //dispatchEvent( { type: "SubmitEvent" } );
+    }
+    else {
+      mx.controls.Alert.show( result );
+    }
+  }
+
+  public function addNewAdv()
+  {
+    if( new_adv.text == "" )
+    {
+      mx.controls.Alert.show( "Please enter a new advertising source to be entered." );
+    }
+    sessionUtil.addAdv( new_adv.text );
+  }
+
+  public function cancel()
+  {
+    reset();
+    dispatchEvent( { type: "SubmitEvent" } );
+  }
+  ]]>
+  </mx:Script>
+
+  <mx:Spacer height="70" />
+
+  <mx:HBox backgroundColor="#F7F7F7" width="100%" horizontalAlign="center" verticalAlign="middle" height="200" > 
+    <mx:TextInput width="200" id="new_adv" enter="addNewAdv()" />
+    <mx:Button label="add" click="addNewAdv()" />
+  </mx:HBox>
+
+  <mx:ControlBar>
+    <mx:Button label="Cancel" click="cancel()" />
+  </mx:ControlBar>
+
+</mx:Panel>

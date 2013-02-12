@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow title="Monthly Deductions." xmlns:mx="http://www.macromedia.com/2003/mxml" xmlns:movers="*" 
+	horizontalAlign="center" verticalAlign="middle">
+
+
+<mx:Script>
+<![CDATA[
+
+  import com.movers.Utility;
+  import com.movers.VO.OwnerMonthlyReportVO;
+
+  [Event("OkEvent")]
+  [Event("CancelEvent")]
+
+  public function getVO() : OwnerMonthlyReportVO
+  {
+    var vo:OwnerMonthlyReportVO = new OwnerMonthlyReportVO();
+    
+    vo._material = Utility.stripFormatting( material.text );
+    vo._monthly_fee = Utility.stripFormatting( monthly_fee.text );
+
+    vo._insurance = Utility.stripFormatting( insurance.text );
+    vo._truck = Utility.stripFormatting( truck.text );
+    vo._royalties = Utility.stripFormatting( royalties.text );
+
+    vo._other_1 = Utility.stripFormatting( other1.text );
+    vo._other_2 = Utility.stripFormatting( other2.text );
+    vo._other_3 = Utility.stripFormatting( other3.text );
+
+    return( vo );
+  }
+
+  public function setVO( vo:OwnerMonthlyReportVO )
+  {
+    material.text = USDformatter.format( vo._material );
+    monthly_fee.text = USDformatter.format( vo._monthly_fee );
+    insurance.text = USDformatter.format( vo._insurance );
+    truck.text = USDformatter.format( vo._truck );
+    royalties.text = USDformatter.format( vo._royalties );
+    other1.text = USDformatter.format( vo._other_1 );
+    other2.text = USDformatter.format( vo._other_2 );
+    other3.text = USDformatter.format( vo._other_3 );
+  }
+  
+  public function setResult( eventString )
+  {
+    if( eventString == "ok" ) {
+        dispatchEvent( { type: "OkEvent" } );
+    }
+    if( eventString == "cancel" ) {
+        dispatchEvent( { type: "CancelEvent" } );
+    }
+  }
+  
+  function Format( item )
+  {
+    var res:String = USDformatter.format( item.text );
+    if( res != "" ) {
+      item.text = res;
+    }
+    else
+    {
+      item.text = "$0.00";
+    }
+  }
+
+]]>
+</mx:Script>
+
+<mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+        decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left"/>
+
+  <mx:HBox borderStyle="solid" width="100%" horizontalAlign="center"
+        marginLeft="20" marginRight="20" marginTop="10" marginBottom="10"
+        cornerRadius="5">
+
+  <mx:VBox>
+    <mx:Form>
+    <mx:FormItem label="Insurance:">
+      <mx:TextInput id="insurance" text="$0.00" width="80" focusOut="Format(insurance)" enter="Format(insurance); setResult('ok')" />
+    </mx:FormItem>
+    <mx:FormItem label="Material:">
+      <mx:TextInput id="material" text="$0.00" width="80" focusOut="Format(material)" enter="Format(material); setResult('ok')" />
+    </mx:FormItem>
+    <mx:FormItem label="Truck:">
+      <mx:TextInput id="truck" text="$0.00" width="80" focusOut="Format(truck)" enter="Format(truck); setResult('ok')" />
+    </mx:FormItem>
+    <mx:FormItem label="Royalties:">
+      <mx:TextInput id="royalties" text="$0.00" width="80" focusOut="Format(royalties)" enter="Format(royalties); setResult('ok')" />
+    </mx:FormItem>
+    </mx:Form>
+  </mx:VBox>
+  
+  <mx:VBox>
+    <mx:Form>
+    <mx:FormItem label="Monthly Fee:">
+      <mx:TextInput id="monthly_fee" text="$0.00" width="80" focusOut="Format(monthly_fee)" enter="Format(monthly_fee); setResult('ok')" />
+    </mx:FormItem>
+    <mx:FormItem label="Other 1:">
+      <mx:TextInput id="other1" text="$0.00" width="80" focusOut="Format(other1)" enter="Format(other1); setResult('ok')" />
+    </mx:FormItem>
+    <mx:FormItem label="Other 2:">
+      <mx:TextInput id="other2" text="$0.00" width="80" focusOut="Format(other2)" enter="Format(other2); setResult('ok')" />
+    </mx:FormItem>
+    <mx:FormItem label="Other 3:">
+      <mx:TextInput id="other3" text="$0.00" width="80" focusOut="Format(other3)" enter="Format(other3); setResult('ok')" />
+    </mx:FormItem>
+    </mx:Form>
+  </mx:VBox>
+
+</mx:HBox>
+
+  <mx:ControlBar horizontalAlign="right">
+    <mx:Button label="Cancel" click="setResult('cancel')" />
+    <mx:Spacer width="100%" />
+    <mx:Button label="Ok" click="setResult('ok')" />
+  </mx:ControlBar>
+  
+</mx:TitleWindow>

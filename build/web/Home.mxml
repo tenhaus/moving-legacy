@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Panel title="Home" xmlns:mx="http://www.macromedia.com/2003/mxml" width="100%" height="100%">
+  <mx:VBox width="100%" height="100%" horizontalAlign="center" verticalAlign="middle">  
+    <mx:Label text="If you find a problem with the software please email chayen@gmail.com" />
+    <mx:Label text="with a description of the problem, the job number, "/>
+    <mx:Label text="and what you were doing when the problem occurred." />
+  </mx:VBox>
+</mx:Panel>

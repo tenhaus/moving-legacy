@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Application xmlns:mx="http://www.macromedia.com/2003/mxml" backgroundColor="#FFFFFF" width="500" height="600">
+  <mx:Panel title="Printing from a DataGrid">
+		<mx:VBox>
+		  <mx:Label text="number of rows to create:"/>
+		  <mx:HBox>
+	      <mx:Button label="Print" click="myPrint()" />
+	      <mx:Button label="Go" click="genData()" />
+	      <mx:TextInput id="rows" text="100"/>
+		  </mx:HBox>
+	    </mx:VBox>
+		<mx:DataGrid id="myDataGrid" width="300" height="300"  />
+	</mx:Panel>
+
+	<mx:Script>
+    <![CDATA[
+        function genData() {
+            var rowCount = Number(rows.text);
+            var dp = [];
+            for (var i=0;i<rowCount;i++) {
+                dp.push({data1:"$" + i + ".00"});
+            }
+            myDataGrid.dataProvider = dp;
+        }
+
+function doPrint() {
+      var pj : PrintJob = new PrintJob();
+
+      //Save the current vertical scroll position of the DataGrid control. 
+      var prev_vPosition:Number = myDataGrid.vPosition;
+
+      if(pj.start() != true)            {
+         delete pj;
+         return;
+      }
+
+      //Calculate the number of visible rows.       
+      var rowsPerPage:Number = Math.floor((myDataGrid.height -  myDataGrid.rowHeight)/ 	myDataGrid.rowHeight);
+
+      //Calculate the number of pages required to print all rows. 
+      var pages:Number = Math.ceil(myDataGrid.dataProvider.length / rowsPerPage);
+
+      //Scroll down each page of rows, then call addPage() once for each page. 
+      for (var i=0;i<pages;i++) {
+         myDataGrid.vPosition = i*rowsPerPage;
+         pj.addPage(myDataGrid);         
+       }
+
+      pj.send();
+      delete pj;
+
+      // Restore vertical scroll position.
+      myDataGrid.vPosition = prev_vPosition;
+}
+
+function myPrint()
+{
+  var pj : PrintJob = new PrintJob();
+  
+  // Start the print job.
+  if(pj.start() != true) {
+    delete pj;
+    return;
+  }
+  
+  pj.addPage(myDataGrid);         
+  pj.send();
+  delete pj;
+}
+
+ 	]]>
+    </mx:Script>
+</mx:Application>

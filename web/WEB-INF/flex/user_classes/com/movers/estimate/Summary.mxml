@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:HBox width="100%" height="100%" horizontalAlign="center" xmlns:mx="http://www.macromedia.com/2003/mxml" load="initVO();">
+  <mx:Script>
+  <![CDATA[
+  import com.movers.VO.*;
+
+  [Event("SummaryChanged")]
+  
+  var local_summaryVO:Local_SummaryVO;
+  var ld_summaryVO:LD_SummaryVO;
+  var summary_informationVO:Summary_InformationVO;
+  
+  public function reset()
+  {
+    local_summaryVO = new Local_SummaryVO();
+    ld_summaryVO = new LD_SummaryVO();
+    summary_informationVO = new Summary_InformationVO();
+    add_in_one_text.text = "";
+    add_in_one_text.validationSucceeded();
+    add_in_two_text.text = "";
+    add_in_two_text.validationSucceeded();
+
+    syncInputs();
+  }
+  
+  public function initVO()
+  {
+    local_summaryVO = new Local_SummaryVO();
+    ld_summaryVO = new LD_SummaryVO();
+    summary_informationVO = new Summary_InformationVO();
+  }
+
+  public function setVO( new_local, new_ld, new_summary )
+  {
+    local_summaryVO = new_local;
+    ld_summaryVO = new_ld;
+    summary_informationVO = new_summary;
+    syncInputs();
+  }
+
+  public function syncInputs()
+  {
+    local_summary_dp.movers       = local_summaryVO._movers;
+    local_summary_dp.trucks       = local_summaryVO._trucks;
+    local_summary_dp.per_hour     = formatVOCurrency(local_summaryVO._per_hour);
+    local_summary_dp.total_hours  = local_summaryVO._total_hours;
+    local_summary_dp.travel_time  = local_summaryVO._travel_time;
+    local_summary_dp.travel_rate  = formatVOCurrency(local_summaryVO._travel_rate);
+    local_summary_dp.travel_fee   = formatVOCurrency(local_summaryVO._travel_fee);
+    local_summary_dp.subtotal     = formatVOCurrency(local_summaryVO._subtotal);
+    local_summary_dp.discount     = formatVOCurrency(local_summaryVO._discount);
+    local_summary_dp.total        = formatVOCurrency(local_summaryVO._total);
+
+    ld_summary_dp.total_cubic_feet      = ld_summaryVO._total_cubic_feet;
+    ld_summary_dp.weight                = ld_summaryVO._weight;
+    
+    ld_summary_dp.minimum_weight        = ld_summaryVO._minimum_weight;
+    ld_summary_dp.minimum_price         = formatVOCurrency(ld_summaryVO._minimum_price);
+    ld_summary_dp.adjusted_weight       = ld_summaryVO._adjusted_weight;
+
+    ld_summary_dp.price_per_pound       = formatVOCurrency(ld_summaryVO._price_per_pound);
+    ld_summary_dp.price_per_cubic_feet  = formatVOCurrency(ld_summaryVO._price_per_cubic_feet);
+    ld_summary_dp.subtotal              = formatVOCurrency(ld_summaryVO._subtotal);
+    ld_summary_dp.discount              = formatVOCurrency(ld_summaryVO._discount);
+    ld_summary_dp.total                 = formatVOCurrency(ld_summaryVO._total);
+
+    summary_information_dp.storage_fee = formatVOCurrency(summary_informationVO._storage_fee);
+    summary_information_dp.extra_stops = summary_informationVO._extra_stops;
+    summary_information_dp.access = formatVOCurrency(summary_informationVO._access);
+    summary_information_dp.bulky_items = summary_informationVO._bulky_items;
+    summary_information_dp.bulky_items_charge = formatVOCurrency(summary_informationVO._bulky_items_charge);
+    summary_information_dp.accessorial = formatVOCurrency(summary_informationVO._accessorial);
+    summary_information_dp.piano_charge = formatVOCurrency(summary_informationVO._piano_charge);
+    summary_information_dp.cleaning_fee = formatVOCurrency(summary_informationVO._cleaning_fee);
+    summary_information_dp.flat_rate = formatVOCurrency(summary_informationVO._flat_rate);
+    summary_information_dp.extra_weight = summary_informationVO._extra_weight;
+    summary_information_dp.extra_rate = formatVOCurrency(summary_informationVO._extra_rate);
+    summary_information_dp.materials_sale = formatVOCurrency(summary_informationVO._materials_sale);
+    summary_information_dp.extra_materials = formatVOCurrency(summary_informationVO._extra_materials);
+
+    summary_information_dp.add_in_one_text = summary_informationVO._add_in_one_text;
+    summary_information_dp.add_in_two_text = summary_informationVO._add_in_two_text;
+
+    summary_information_dp.add_in_one = formatVOCurrency(summary_informationVO._add_in_one);
+    summary_information_dp.add_in_two = formatVOCurrency(summary_informationVO._add_in_two);
+    summary_information_dp.subtotal = formatVOCurrency(summary_informationVO._subtotal);
+    summary_information_dp.discount = formatVOCurrency(summary_informationVO._discount);
+    summary_information_dp.total = formatVOCurrency(summary_informationVO._total);
+  }
+  
+  function Format( item )
+  {
+    var res:String = USDformatter.format( item.text );
+    if( res != "" ) {
+      item.text = res;
+    }
+    else
+    {
+      item.text = "$0.00";
+    }
+    calculateTotals();
+  }
+
+  function formatCalc( result )
+  {
+    var res:String = USDformatter.format( result );
+    if( res != "" ) {
+      return(res);
+    }			   
+    else
+    {
+      return("$0.00");
+    }
+  }
+  
+  
+  public function stripFormatting( num:String ) : Number
+  {
+    if( num == null )
+    {
+      return(0);
+    }
+    var result:String = "";
+    for( var i=0; i<num.length; i++ )
+    {
+      if( num.charAt(i) != '$' && num.charAt(i) != ',' )
+      {
+        result += num.charAt(i);
+      }
+    }
+  
+    if( Number(result) )
+    {
+      return( Number(result) );
+    }
+    else  
+    {
+      return(0);
+    }
+  }
+
+  function calculateTotals()
+  {
+    travelfee.text = formatCalc( (local_summaryVO._travel_time/60) * local_summaryVO._travel_rate );           
+	    
+    localsubtotal.text = formatCalc( (local_summaryVO._per_hour * local_summaryVO._total_hours) + local_summaryVO._travel_fee ); 
+    localtotal.text = formatCalc( local_summaryVO._subtotal - local_summaryVO._discount ); 
+
+    if( ld_summaryVO._total_cubic_feet != 0 ) {
+      pricepercuft.text = formatCalc( ld_summaryVO._subtotal  / ld_summaryVO._total_cubic_feet );
+    }
+    else {
+      pricepercuft.text = "$0.00";
+    }
+				
+    if( (ld_summaryVO._weight - ld_summaryVO._minimum_weight) >= 0 )
+    {
+      adjusted_weight.text = ld_summaryVO._weight - ld_summaryVO._minimum_weight;
+    }
+    else 
+    {
+      adjusted_weight.text = 0;
+    }
+
+    
+    longsubtotal.text = formatCalc( (ld_summaryVO._adjusted_weight * ld_summaryVO._price_per_pound) + ld_summaryVO._minimum_price );
+    longtotal.text = formatCalc( ld_summaryVO._subtotal - ld_summaryVO._discount );
+    
+    subtotal.text = formatCalc(
+		    summary_informationVO._storage_fee + summary_informationVO._access + 
+		    (summary_informationVO._bulky_items * summary_informationVO._bulky_items_charge) +
+		    summary_informationVO._accessorial + summary_informationVO._piano_charge +
+		    summary_informationVO._cleaning_fee + summary_informationVO._flat_rate + 
+		    (summary_informationVO._extra_weight * summary_informationVO._extra_rate) +
+		    summary_informationVO._materials_sale + summary_informationVO._extra_materials +
+		    summary_informationVO._add_in_one + summary_informationVO._add_in_two +
+		    local_summaryVO._subtotal + ld_summaryVO._subtotal 
+    );
+   
+   discount.text = formatCalc( local_summaryVO._discount + ld_summaryVO._discount );
+   total.text = formatCalc( summary_informationVO._subtotal - summary_informationVO._discount );
+   
+   dispatchEvent( { type: "SummaryChanged", total: summary_informationVO._total } );  
+  }
+  
+  function formatNumber( item )
+  {
+    var res:String = numberFormatter.format( item.text );
+    if( res != "" ) {
+      item.text = res;
+    }
+    else
+    {
+      item.text = "0";
+    }
+    calculateTotals();
+  }
+
+  function formatVOCurrency( text )
+  {
+    var res:String = USDformatter.format( text );
+    if( res != "" ) {
+      return(res);
+    }
+    else
+    {
+      return( "$0.00" );
+    }				       
+    calculateTotals();
+  }
+  
+  public function setMaterials( new_total )
+  {
+    summary_information_dp.materials_sale = formatVOCurrency( new_total );
+    calculateTotals();
+  }
+  
+  public function setWeight( new_weight )
+  {
+    ld_summary_dp.weight = new_weight;
+    calculateTotals();
+  }
+  
+  public function setCuft( new_cuft )
+  {
+    ld_summary_dp.total_cubic_feet = new_cuft;
+    calculateTotals();
+  }
+					    
+  ]]>
+  </mx:Script>
+   
+   <mx:Model id="local_summary_dp">
+     <movers>0</movers>
+     <trucks>0</trucks>
+     <per_hour>$0.00</per_hour>
+     <total_hours>0</total_hours>
+     <travel_time>0</travel_time>
+     <travel_rate>$0.00</travel_rate>
+     <travel_fee>$0.00</travel_fee>
+     <subtotal>$0.00</subtotal> 
+     <discount>$0.00</discount>
+     <total>$0.00</total>
+   </mx:Model>
+   
+   <mx:Model id="ld_summary_dp">
+     <total_cubic_feet>0</total_cubic_feet>
+     <weight>0</weight>
+     <minimum_weight>1500</minimum_weight>
+     <adjusted_weight>0</adjusted_weight>
+     <minimum_price>$0.00</minimum_price>
+     <price_per_pound>$0.00</price_per_pound>
+     <price_per_cubic_feet>$0.00</price_per_cubic_feet>
+     <subtotal>$0.00</subtotal>
+     <discount>$0.00</discount>
+     <total>$0.00</total>
+   </mx:Model>
+   
+   <mx:Model id="summary_information_dp">
+     <storage_fee>$0.00</storage_fee>
+     <extra_stops>0</extra_stops>
+     <access>$0.00</access>
+     <bulky_items>0</bulky_items>
+     <bulky_items_charge>$0.00</bulky_items_charge>
+     <accessorial>$0.00</accessorial>
+     <piano_charge>$0.00</piano_charge>
+     <cleaning_fee>$0.00</cleaning_fee>
+     <flat_rate>$0.00</flat_rate>
+     <extra_weight>0</extra_weight>
+     <extra_rate>$0.00</extra_rate>
+     <materials_sale>$0.00</materials_sale>
+     <extra_materials>$0.00</extra_materials>
+     <add_in_one_text></add_in_one_text>
+     <add_in_one>$0.00</add_in_one>
+     <add_in_two_text></add_in_two_text>
+     <add_in_two>$0.00</add_in_two>
+     <subtotal>$0.00</subtotal>
+     <discount>$0.00</discount>
+     <total>$0.00</total>
+   </mx:Model>
+   
+		      
+   <mx:Model id="local_summary">
+     <movers>{ nummovers.text }</movers>
+     <trucks>{ numtrucks.text }</trucks>
+     <per_hour>{ perhour.text }</per_hour>
+     <total_hours>{ totalhours.text }</total_hours>
+     <travel_time>{ traveltime.text }</travel_time>
+     <travel_rate>{ travelrate.text }</travel_rate>
+     <travel_fee>{ travelfee.text }</travel_fee>
+     <subtotal>{ localsubtotal.text }</subtotal> 
+     <discount>{ localdiscount.text }</discount>
+     <total>{ localtotal.text }</total>
+   </mx:Model>
+
+   <mx:Model id="ld_summary">
+     <total_cubic_feet>{ totalcuft.text }</total_cubic_feet>
+     <weight>{ weight.text }</weight>
+     <minimum_weight>{ minimum_weight.text }</minimum_weight>
+     <adjusted_weight>{ adjusted_weight.text }</adjusted_weight>
+     <minimum_price>{ minimum_price.text }</minimum_price>
+     <price_per_pound>{ priceperpound.text }</price_per_pound>
+     <price_per_cubic_feet>{ pricepercuft.text }</price_per_cubic_feet>
+     <subtotal>{ longsubtotal.text }</subtotal>
+     <discount>{ longdiscount.text }</discount>
+     <total>{ longtotal.text }</total>
+   </mx:Model>
+
+   <mx:Model id="summary_information">
+     <storage_fee>{ storagefee.text }</storage_fee>
+     <extra_stops>{ extrastops.text }</extra_stops>
+     <access>{ access.text }</access>
+     <bulky_items>{ bulkyitems.text }</bulky_items>
+     <bulky_items_charge>{ bulkyitemscharge.text }</bulky_items_charge>
+     <accessorial>{ accessorial.text }</accessorial>
+     <piano_charge>{ pianocharge.text }</piano_charge>
+     <cleaning_fee>{ cleaningfee.text }</cleaning_fee>
+     <flat_rate>{ flatrate.text }</flat_rate>
+     <extra_weight>{ extraweight.text }</extra_weight>
+     <extra_rate>{ extrarate.text }</extra_rate>
+     <materials_sale>{ materialssale.text }</materials_sale>
+     <extra_materials>{ extramaterials.text }</extra_materials>
+     <add_in_one_text>{ add_in_one_text.text }</add_in_one_text>
+     <add_in_one>{ add_in_one.text }</add_in_one>
+     <add_in_two_text>{ add_in_two_text.text }</add_in_two_text>
+     <add_in_two>{ add_in_two.text }</add_in_two>
+     <subtotal>{ subtotal.text }</subtotal>
+     <discount>{ discount.text }</discount>
+     <total>{ total.text }</total>
+     
+   </mx:Model>
+   
+
+
+   <mx:Binding source="local_summary.movers" destination="local_summaryVO._movers" />
+   <mx:Binding source="local_summary.trucks" destination="local_summaryVO._trucks" />
+   <mx:Binding source="stripFormatting(local_summary.per_hour)" destination="local_summaryVO._per_hour" />
+   <mx:Binding source="local_summary.total_hours" destination="local_summaryVO._total_hours" />
+   <mx:Binding source="local_summary.travel_time" destination="local_summaryVO._travel_time" />
+   <mx:Binding source="stripFormatting(local_summary.travel_rate)" destination="local_summaryVO._travel_rate" />
+   <mx:Binding source="stripFormatting(local_summary.travel_fee)" destination="local_summaryVO._travel_fee" />
+   <mx:Binding source="stripFormatting(local_summary.subtotal)" destination="local_summaryVO._subtotal" />
+   <mx:Binding source="stripFormatting(local_summary.discount)" destination="local_summaryVO._discount" />
+   <mx:Binding source="stripFormatting(local_summary.total)" destination="local_summaryVO._total" />
+
+   <mx:Binding source="ld_summary.total_cubic_feet" destination="ld_summaryVO._total_cubic_feet" />
+   <mx:Binding source="ld_summary.weight" destination="ld_summaryVO._weight" />
+   
+   <mx:Binding source="ld_summary.minimum_weight" destination="ld_summaryVO._minimum_weight" />
+   <mx:Binding source="ld_summary.adjusted_weight" destination="ld_summaryVO._adjusted_weight" />
+   <mx:Binding source="stripFormatting(ld_summary.minimum_price)" destination="ld_summaryVO._minimum_price" />
+   
+   <mx:Binding source="stripFormatting(ld_summary.price_per_pound)" destination="ld_summaryVO._price_per_pound" />
+   <mx:Binding source="stripFormatting(ld_summary.price_per_cubic_feet)" destination="ld_summaryVO._price_per_cubic_feet" />
+   <mx:Binding source="stripFormatting(ld_summary.subtotal)" destination="ld_summaryVO._subtotal" />
+   <mx:Binding source="stripFormatting(ld_summary.discount)" destination="ld_summaryVO._discount" />
+   <mx:Binding source="stripFormatting(ld_summary.total)" destination="ld_summaryVO._total" />
+
+   <mx:Binding source="stripFormatting(summary_information.storage_fee)" destination="summary_informationVO._storage_fee" /> 
+   <mx:Binding source="stripFormatting(summary_information.extra_stops)" destination="summary_informationVO._extra_stops" /> 
+   <mx:Binding source="stripFormatting(summary_information.access)" destination="summary_informationVO._access" /> 
+   <mx:Binding source="stripFormatting(summary_information.bulky_items)" destination="summary_informationVO._bulky_items" /> 
+   <mx:Binding source="stripFormatting(summary_information.bulky_items_charge)" destination="summary_informationVO._bulky_items_charge" /> 
+   <mx:Binding source="stripFormatting(summary_information.accessorial)" destination="summary_informationVO._accessorial" /> 
+   <mx:Binding source="stripFormatting(summary_information.piano_charge)" destination="summary_informationVO._piano_charge" /> 
+   <mx:Binding source="stripFormatting(summary_information.cleaning_fee)" destination="summary_informationVO._cleaning_fee" /> 
+   <mx:Binding source="stripFormatting(summary_information.flat_rate)" destination="summary_informationVO._flat_rate" /> 
+   <mx:Binding source="stripFormatting(summary_information.extra_weight)" destination="summary_informationVO._extra_weight" /> 
+   <mx:Binding source="stripFormatting(summary_information.extra_rate)" destination="summary_informationVO._extra_rate" /> 
+   <mx:Binding source="stripFormatting(summary_information.materials_sale)" destination="summary_informationVO._materials_sale" /> 
+   <mx:Binding source="stripFormatting(summary_information.extra_materials)" destination="summary_informationVO._extra_materials" /> 
+   <mx:Binding source="summary_information.add_in_one_text" destination="summary_informationVO._add_in_one_text" /> 
+   <mx:Binding source="summary_information.add_in_two_text" destination="summary_informationVO._add_in_two_text" /> 
+   <mx:Binding source="stripFormatting(summary_information.add_in_one)" destination="summary_informationVO._add_in_one" /> 
+   <mx:Binding source="stripFormatting(summary_information.add_in_two)" destination="summary_informationVO._add_in_two" /> 
+   <mx:Binding source="stripFormatting(summary_information.subtotal)" destination="summary_informationVO._subtotal" /> 
+   <mx:Binding source="stripFormatting(summary_information.discount)" destination="summary_informationVO._discount" /> 
+   <mx:Binding source="stripFormatting(summary_information.total)" destination="summary_informationVO._total" /> 
+  
+  
+   <mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+           decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left"/>
+   
+   <mx:NumberFormatter id="numberFormatter" precision="0" useNegativeSign="true" useThousandsSeparator="false" />
+
+   <mx:CurrencyValidator field="local_summary.travel_rate" allowNegative="true"/>
+   <mx:CurrencyValidator field="local_summary.per_hour" allowNegative="true"/>
+   <mx:CurrencyValidator field="local_summary.discount" allowNegative="true"/>
+  
+   <mx:CurrencyValidator field="ld_summary.price_per_pound" allowNegative="true"/>
+   <mx:CurrencyValidator field="ld_summary.price_per_cubic_feet" allowNegative="true"/>
+   <mx:CurrencyValidator field="ld_summary.discount" allowNegative="true"/>
+   <mx:CurrencyValidator field="ld_summary.subtotal" allowNegative="true"/>
+   <mx:CurrencyValidator field="ld_summary.total" allowNegative="true"/>
+  
+   <mx:Canvas> 
+     <mx:Form>
+     <mx:FormHeading label="Local Job" />
+   
+     <mx:FormItem id="nummoversitem" label="Movers">
+       <mx:TextInput id="nummovers" width="80" text="{ local_summary_dp.movers }" change="calculateTotals();" focusOut="formatNumber(nummovers)" />
+     </mx:FormItem>
+
+     <mx:FormItem id="numtrucksitem" label="Trucks">
+       <mx:TextInput id="numtrucks"  width="80" text="{ local_summary_dp.trucks }" change="calculateTotals();" focusOut="formatNumber(numtrucks)"/>
+     </mx:FormItem>
+
+     <mx:FormItem id="perhouritem" label="Per Hour">
+       <mx:TextInput id="perhour"  width="80" focusOut="Format(perhour);" text="{ local_summary_dp.per_hour }" change="calculateTotals();"/>
+     </mx:FormItem>
+
+     <mx:FormItem id="totalhoursitem" label="Total Hours">
+       <mx:TextInput id="totalhours"  width="80" text="{ local_summary_dp.total_hours }" change="calculateTotals();" focusOut="formatNumber(totalhours)"/>
+     </mx:FormItem>
+
+   <mx:FormItem id="traveltimeitem" label="Travel Time">
+     <mx:TextInput id="traveltime" width="80" text="{ local_summary_dp.travel_time }" change="calculateTotals();" focusOut="formatNumber(traveltime)"/>
+   </mx:FormItem>
+
+   <mx:FormItem id="travelrateitem" label="Travel Rate">
+     <mx:TextInput id="travelrate"  width="80" text="{ local_summary_dp.travel_rate }" focusOut="Format(travelrate);" change="calculateTotals();"/>
+   </mx:FormItem>
+
+   <mx:FormItem id="travelfeeitem" label="Travel Fee">
+     <mx:TextInput id="travelfee"  width="80" editable="false" text="{ local_summary_dp.travel_fee }" change="calculateTotals();"/>
+   </mx:FormItem>
+
+   <mx:FormItem id="localsubtotalitem" label="Subtotal">
+     <mx:TextInput id="localsubtotal"  width="80" editable="false" text="{ local_summary_dp.subtotal }" change="calculateTotals();"/>
+   </mx:FormItem>
+
+   <mx:FormItem id="localdiscountitem" label="Discount">
+     <mx:TextInput id="localdiscount"  width="80" focusOut="Format(localdiscount);" text="{ local_summary_dp.discount }" change="calculateTotals();"/>
+   </mx:FormItem>
+
+   <mx:FormItem id="localtotalitem" label="Total">
+     <mx:TextInput id="localtotal"  width="80" editable="false" text="{ local_summary_dp.total }" change="calculateTotals();"/>
+   </mx:FormItem>
+   
+   </mx:Form>
+   </mx:Canvas>
+   
+   <mx:Canvas>
+   <mx:Form>
+   <mx:FormHeading label="Long Distance" />
+   
+   <mx:FormItem id="totalcuftitem" label="Cubic Feet">
+   <mx:TextInput id="totalcuft" width="80" text="{ ld_summary_dp.total_cubic_feet }" 
+   	editable="false" change="calculateTotals();" focusOut="formatNumber(totalcuft)"/>
+   </mx:FormItem>
+   
+   <mx:FormItem id="weightitem" label="Weight">
+   <mx:TextInput id="weight"  width="80" text="{ ld_summary_dp.weight }" 
+   	editable="false" change="calculateTotals();" focusOut="formatNumber(weight)"/>
+   </mx:FormItem>
+   
+   <mx:FormItem id="minimumweightitem" label="Minimum Weight">
+   <mx:TextInput id="minimum_weight"  width="80" text="{ ld_summary_dp.minimum_weight }" 
+   	editable="false" change="calculateTotals();" focusOut="formatNumber(minimum_weight)"/>
+   </mx:FormItem>
+   
+   <mx:FormItem id="minimumpriceitem" label="Minimum Price">
+   <mx:TextInput id="minimum_price"  width="80" text="{ ld_summary_dp.minimum_price }"
+   	change="calculateTotals();" focusOut="Format(minimum_price)"/>
+   </mx:FormItem>
+   
+   <mx:FormItem id="adjustedweightitem" label="Adjusted Weight">
+   <mx:TextInput id="adjusted_weight"  width="80" text="{ ld_summary_dp.adjusted_weight }"
+   	editable="false" change="calculateTotals();" focusOut="formatNumber(adjusted_weight);"/>
+   </mx:FormItem>
+   
+   <mx:FormItem id="priceperpounditem" label="Price / LB.">
+   <mx:TextInput id="priceperpound"  width="80" text="{ ld_summary_dp.price_per_pound }" focusOut="Format(priceperpound);" change="calculateTotals();"/>
+   </mx:FormItem>
+   
+   <mx:FormItem id="pricepercuftitem" label="Price / Cuft.">
+   <mx:TextInput id="pricepercuft"  width="80" text="{ ld_summary_dp.price_per_cubic_feet }" 
+   	editable="false" focusOut="Format(pricepercuft);" change="calculateTotals();"/>
+   </mx:FormItem>
+   
+   <mx:FormItem id="longsubtotalitem" label="Subtotal">
+   <mx:TextInput id="longsubtotal"  width="80" text="{ ld_summary_dp.subtotal }" editable="false" focusOut="Format(longsubtotal);" change="calculateTotals();"/>
+   </mx:FormItem>
+   
+   <mx:FormItem id="longdiscountitem" label="Discount">
+   <mx:TextInput id="longdiscount"  text="{ ld_summary_dp.discount }" width="80" focusOut="Format(longdiscount);" change="calculateTotals();"/>
+   </mx:FormItem>
+   
+   <mx:FormItem id="longtotalitem" label="Total">
+   <mx:TextInput id="longtotal"  width="80" text="{ ld_summary_dp.total }" editable="false" focusOut="Format(longtotal);" change="calculateTotals();"/>
+   </mx:FormItem>
+   
+   </mx:Form>
+   </mx:Canvas>
+   
+   <mx:Canvas>
+     <mx:Form>
+       <mx:FormHeading label="Summary" />
+
+       <mx:FormItem  label="Storage Fee">
+         <mx:TextInput width="80" text="{ summary_information_dp.storage_fee }" id="storagefee" focusOut="Format(storagefee);" change="calculateTotals();"/>
+       </mx:FormItem>
+       
+       <mx:FormItem  label="Extra Stops">
+         <mx:TextInput width="80" text="{ summary_information_dp.extra_stops }" id="extrastops" change="calculateTotals();" focusOut="formatNumber(extrastops)"/>
+       </mx:FormItem>
+       
+       <mx:FormItem  label="Access">
+         <mx:TextInput width="80" text="{ summary_information_dp.access }" id="access" focusOut="Format(access);" change="calculateTotals();"/>
+       </mx:FormItem>
+       
+       <mx:FormItem  label="Bulky Items">
+         <mx:TextInput width="80" text="{ summary_information_dp.bulky_items }" id="bulkyitems" change="calculateTotals();" focusOut="formatNumber(bulkyitems)"/>
+       </mx:FormItem>
+       
+       <mx:FormItem  label="Bulky Charge">
+         <mx:TextInput width="80" text="{ summary_information_dp.bulky_items_charge }" id="bulkyitemscharge" focusOut="Format(bulkyitemscharge);" change="calculateTotals();"/>
+       </mx:FormItem>
+       
+       <mx:FormItem  label="Accessorial">
+         <mx:TextInput width="80" text="{ summary_information_dp.accessorial }" id="accessorial" focusOut="Format(accessorial);" change="calculateTotals();"/>
+       </mx:FormItem>
+       
+       <mx:FormItem  label="Piano Charge">
+         <mx:TextInput width="80" text="{ summary_information_dp.piano_charge }" id="pianocharge" focusOut="Format(pianocharge);" change="calculateTotals();"/>
+       </mx:FormItem>
+       
+       <mx:FormItem  label="Cleaning Fee">
+         <mx:TextInput width="80" text="{ summary_information_dp.cleaning_fee }" id="cleaningfee" focusOut="Format(cleaningfee);" change="calculateTotals();"/>
+       </mx:FormItem>
+       
+       <mx:FormItem  label="Flat Rate">
+         <mx:TextInput width="80" text="{ summary_information_dp.flat_rate }" id="flatrate" focusOut="Format(flatrate);" change="calculateTotals();"/>
+       </mx:FormItem>
+
+       <mx:HBox width="100%" horizontalAlign="right" >
+         <mx:TextInput id="add_in_one_text" text="{ summary_information_dp.add_in_one_text }" width="80" />
+         <mx:TextInput id="add_in_one" width="80" text="{ summary_information_dp.add_in_one }" focusOut="Format(add_in_one);" change="calculateTotals();"/>
+       </mx:HBox>
+       
+       <mx:HBox width="100%" horizontalAlign="right" >
+         <mx:TextInput id="add_in_two_text" text="{ summary_information_dp.add_in_two_text }" width="80" />
+         <mx:TextInput id="add_in_two" width="80" text="{ summary_information_dp.add_in_two }" focusOut="Format(add_in_two);" change="calculateTotals();"/>
+       </mx:HBox>
+
+
+     </mx:Form>
+   </mx:Canvas>
+
+   <mx:Canvas>
+     <mx:Form>
+       
+       <mx:FormHeading label="Summary" />
+       
+       <mx:FormItem  label="Extra Weight">
+         <mx:TextInput width="80" text="{ summary_information_dp.extra_weight }" id="extraweight" change="calculateTotals();" focusOut="formatNumber(extraweight)"/>
+       </mx:FormItem>
+       
+       <mx:FormItem  label="Extra Rate">
+         <mx:TextInput width="80" text="{ summary_information_dp.extra_rate }" id="extrarate" focusOut="Format(extrarate);" change="calculateTotals();"/>
+       </mx:FormItem>
+       
+       <mx:FormItem  label="Materials Sale">
+         <mx:TextInput width="80" text="{ summary_information_dp.materials_sale }" id="materialssale" 
+	 	editable="false" focusOut="Format(materialssale);" change="calculateTotals();"/>
+       </mx:FormItem>
+       
+       <mx:FormItem  label="Extra Materials">
+         <mx:TextInput width="80" text="{ summary_information_dp.extra_materials }" id="extramaterials" focusOut="Format(extramaterials);" change="calculateTotals();"/>
+       </mx:FormItem>
+       
+       <mx:FormItem  label="Subtotal">
+         <mx:TextInput width="80" editable="false" text="{ summary_information_dp.subtotal }" id="subtotal" focusOut="Format(subtotal);" change="calculateTotals();"/>
+       </mx:FormItem>
+       
+       <mx:FormItem  label="Discount">
+         <mx:TextInput width="80" text="{ summary_information_dp.discount }" editable="false" id="discount" focusOut="Format(discount);" change="calculateTotals();"/>
+       </mx:FormItem>
+
+       <mx:FormItem  label="Total">
+         <mx:TextInput width="80" editable="false" text="{ summary_information_dp.total }" id="total" focusOut="Format(total);" change="calculateTotals();"/>
+       </mx:FormItem>
+
+     </mx:Form>
+   </mx:Canvas>
+   
+</mx:HBox>

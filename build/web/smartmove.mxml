@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Application xmlns:mx="http://www.macromedia.com/2003/mxml" load="showWindow(true)" width="100%" height="100%">
+
+
+    <mx:Script>
+    <![CDATA[ 
+    var popup;
+    function loginListener( event )
+    {
+    	if( event.type == "loginSuccessful" ) {
+	  _parent.employee.getEmployeeInfo( event.username );
+	  _parent.popup.deletePopUp();
+      	  //_parent.mainLinkBar.visible = true;
+	  _parent.myViewStack.visible = true;
+	  _parent.glass.visible = true;
+	  _parent.search_input.visible = true;
+	  _parent.search_button.visible = true;
+	  _parent.menu_bar.visible = true;
+
+	}
+	if( event.type == "loginUnsuccessful" )
+	{
+	  mx.controls.Alert.show( "Bad username or password.  Please try again" );
+	}
+    }
+    
+    function initComponents()
+    {
+      job_status.getSalesman();
+    }
+
+    function employee_Result( event )
+    {
+      _global.session = event.result;    
+      if( _global.session._role == "Global Dispatch" )
+      {
+        menu_bar.dataProvider = menu_global_dispatch;
+      }
+      if( _global.session._role == "Dispatch" )
+      {
+        menu_bar.dataProvider = menu_dispatch;
+      }
+      if( _global.session._role == "Administrator" )
+      {
+        menu_bar.dataProvider = menu_admin;
+      }
+      if( _global.session._role == "Moving Advisor" )
+      {
+        menu_bar.dataProvider = menu_sales;
+      }
+      if( _global.session._role == "Customer Service" )
+      {
+        menu_bar.dataProvider = menu_customer_service;
+      }
+      if( _global.session._role == "Manager" )
+      {
+        menu_bar.dataProvider = menu_manager;
+      }
+      initComponents();
+    }    
+    
+    function showWindow(modal) {
+        var delegate = mx.utils.Delegate.create( this, goHome );
+
+        job.addEventListener( "SubmitEvent", delegate );
+        estimate.addEventListener( "SubmitEvent", delegate );
+        job_status.addEventListener( "SubmitEvent", delegate );
+        admin_job_status.addEventListener( "SubmitEvent", delegate );
+        change_password.addEventListener( "SubmitEvent", delegate );
+	
+	add_mover.addEventListener( "SubmitEvent", delegate );
+	edit_mover.addEventListener( "SubmitEvent", delegate );
+	mover_payroll.addEventListener( "SubmitEvent", delegate );
+	add_employee.addEventListener( "SubmitEvent", delegate );
+	admin_add_employee.addEventListener( "SubmitEvent", delegate );
+        admin_add_adv.addEventListener( "SubmitEvent", delegate );
+	
+	var jobDel = mx.utils.Delegate.create( this, loadJob );
+	
+	search.addEventListener( "LoadJobEvent", jobDel );
+	dispatch.addEventListener( "LoadJobEvent", jobDel );
+	global_dispatch.addEventListener( "LoadJobEvent", jobDel );
+	
+	
+	daily_estimates.addEventListener( "LoadJobEvent", jobDel );
+	daily_estimates_by_salesman.addEventListener( "LoadJobEvent", jobDel );
+	daily_income.addEventListener( "LoadJobEvent", jobDel );
+	daily_income_by_salesman.addEventListener( "LoadJobEvent", jobDel );
+	open_contracts.addEventListener( "LoadJobEvent", jobDel );
+	cancelled_jobs.addEventListener( "LoadJobEvent", jobDel );
+	
+	manager_daily_estimates.addEventListener( "LoadJobEvent", jobDel );
+	manager_daily_estimates_by_salesman.addEventListener( "LoadJobEvent", jobDel );
+	manager_daily_income.addEventListener( "LoadJobEvent", jobDel );
+	manager_daily_income_by_salesman.addEventListener( "LoadJobEvent", jobDel );
+	manager_open_contracts.addEventListener( "LoadJobEvent", jobDel );
+	manager_cancelled_jobs.addEventListener( "LoadJobEvent", jobDel );
+	admin_owner_report.addEventListener( "LoadJobEvent", jobDel );
+	
+	salesman_daily_estimates.addEventListener( "LoadJobEvent", jobDel );
+	salesman_daily_income.addEventListener( "LoadJobEvent", jobDel );
+	mover_payroll.addEventListener( "LoadJobEvent", jobDel );
+
+	popup = mx.managers.PopUpManager.createPopUp( _root, com.movers.Login, modal, {deferred: true} );
+ 	popup.addEventListener( "loginSuccessful", loginListener );
+ 	popup.addEventListener( "loginUnsuccessful", loginListener );
+	popup.centerPopUp();	
+    }
+    
+    function loadJob( event )
+    {
+      job.loadJob( Number(event.job_id), Number(event.company_id) );
+      myViewStack.selectedChild=job;
+    }
+    
+    function goHome()
+    {
+      myViewStack.selectedChild=home;
+    }
+    
+    function menuHandler(event)
+    {
+      switch( event.menuItem.attributes.data )
+      {
+        case "new_estimate" :
+	    myViewStack.selectedChild = estimate;
+	    break;
+        case "find_estimate" :
+	    myViewStack.selectedChild = search;
+	    break;
+        case "job_schedule" :
+	    myViewStack.selectedChild = dispatch;
+	    break;
+        case "global_job_schedule" :
+	    myViewStack.selectedChild = global_dispatch;
+	    break;
+	case "daily_estimates" :
+	    myViewStack.selectedChild = daily_estimates;
+	    break;
+	case "daily_estimates_by_salesman" :
+	    myViewStack.selectedChild = daily_estimates_by_salesman;
+	    break;
+	case "daily_income" :
+	    myViewStack.selectedChild = daily_income;
+	    break;
+	case "daily_income_by_salesman" :
+	    myViewStack.selectedChild = daily_income_by_salesman;
+	    break;
+	case "open_contracts" :
+	    myViewStack.selectedChild = open_contracts;
+	    break;
+	case "cancelled_jobs" :
+	    myViewStack.selectedChild = cancelled_jobs;
+	    break;
+	case "manager_daily_estimates" :
+	    myViewStack.selectedChild = manager_daily_estimates;
+	    break;
+	case "manager_daily_estimates_by_salesman" :
+	    myViewStack.selectedChild = manager_daily_estimates_by_salesman;
+	    break;
+	case "manager_daily_income" :
+	    myViewStack.selectedChild = manager_daily_income;
+	    break;
+	case "manager_daily_income_by_salesman" :
+	    myViewStack.selectedChild = manager_daily_income_by_salesman;
+	    break;
+	case "manager_open_contracts" :
+	    myViewStack.selectedChild = manager_open_contracts;
+	    break;
+	case "manager_cancelled_jobs" :
+	    myViewStack.selectedChild = manager_cancelled_jobs;
+	    break;
+	case "admin_owner_report" :
+	    myViewStack.selectedChild = admin_owner_report;
+	    break;
+	case "salesman_daily_estimates" :
+	    myViewStack.selectedChild = salesman_daily_estimates;
+	    break;
+	case "salesman_daily_income" :
+	    myViewStack.selectedChild = salesman_daily_income;
+	    break;
+	case "change_password" :
+	    myViewStack.selectedChild = change_password;
+	    break;							       
+	case "job_status" :
+	    myViewStack.selectedChild = job_status;
+	    break;							       
+	case "admin_job_status" :
+	    myViewStack.selectedChild = admin_job_status;
+	    break;							       
+	case "add_mover" :
+	    myViewStack.selectedChild = add_mover;
+	    break;							       
+	case "edit_mover" :
+	    myViewStack.selectedChild = edit_mover;
+	    break;							       
+	case "mover_payroll" :
+	    myViewStack.selectedChild = mover_payroll;
+	    break;							       
+	case "add_employee" :
+	    myViewStack.selectedChild = add_employee;
+	    break;							       
+	case "admin_add_employee" :
+	    myViewStack.selectedChild = admin_add_employee;
+	    break;							       
+	case "admin_add_adv" :
+	    myViewStack.selectedChild = admin_add_adv;
+	    break;							       
+	default:
+	    alert( "unknown menu item " + event.menuItem.attributes.data );
+      }
+    }
+
+    public function findJob()
+    {
+      search.findJob( search_input.text, _global.session._company_id )
+      myViewStack.selectedChild = search;
+    }
+    ]]>
+    </mx:Script>
+    
+    <mx:XML id="menu_admin">
+        <menuitem label="Estimate" id="estimate_menu">
+          <menuitem label="New Estimate"  data="new_estimate" />
+          <menuitem label="Find Estimate" data="find_estimate"/>
+        </menuitem>
+      
+        <menuitem label="Dispatch" >
+          <menuitem label="Job Schedule" data="global_job_schedule" />
+        </menuitem>
+      
+        <menuitem label="Reports">
+          <menuitem label="Daily Estimates" data="daily_estimates" />
+          <menuitem label="Daily by Salesman" data="daily_estimates_by_salesman" />
+          <menuitem label="Daily Income" data="daily_income" />
+          <menuitem label="Daily Income by Salesman" data="daily_income_by_salesman" />
+          <menuitem label="Open Contracts" data="open_contracts" />
+          <menuitem label="Cancelled Jobs" data="cancelled_jobs" />
+          <menuitem label="Owner Report" data="admin_owner_report" />
+        </menuitem>
+
+	<menuitem label="Accounting" enabled="true">
+          <menuitem label="New Mover" data="add_mover" />
+          <menuitem label="Edit Mover" data="edit_mover" />          
+          <menuitem label="Movers Payroll" data="mover_payroll" />
+          <menuitem label="New Employee" data="admin_add_employee" />
+	</menuitem>
+
+	<menuitem label="Utility">
+          <menuitem label="Change Password" data="change_password" />
+          <menuitem label="Change Job Status" data="admin_job_status" />
+          <menuitem label="Add Advertising Source" data="admin_add_adv" />
+	</menuitem>
+    </mx:XML>
+    
+    <mx:XML id="menu_manager">
+        <menuitem label="Estimate" id="estimate_menu">
+          <menuitem label="New Estimate"  data="new_estimate" />
+          <menuitem label="Find Estimate" data="find_estimate"/>
+        </menuitem>
+      
+        <menuitem label="Dispatch" >
+          <menuitem label="Job Schedule" data="job_schedule" />
+        </menuitem>
+      
+        <menuitem label="Reports">
+          <menuitem label="Daily Estimates" data="manager_daily_estimates" />
+          <menuitem label="Daily by Salesman" data="manager_daily_estimates_by_salesman" />
+          <menuitem label="Daily Income" data="manager_daily_income" />
+          <menuitem label="Daily Income by Salesman" data="manager_daily_income_by_salesman" />
+          <menuitem label="Open Contracts" data="manager_open_contracts" />
+          <menuitem label="Cancelled Jobs" data="manager_cancelled_jobs" />
+        </menuitem>
+
+	<menuitem label="Accounting" enabled="true">
+          <menuitem label="New Mover" data="add_mover" />
+          <menuitem label="Edit Mover" data="edit_mover" />
+          <menuitem label="Movers Payroll" data="mover_payroll" />
+          <menuitem label="New Employee" data="add_employee" />
+	</menuitem>
+
+	<menuitem label="Utility">
+          <menuitem label="Change Password" data="change_password" />
+          <menuitem label="Change Job Status" data="job_status" />
+	</menuitem>
+    </mx:XML>
+    
+    <mx:XML id="menu_global_dispatch">
+        <menuitem label="Estimate" id="estimate_menu">
+          <menuitem label="New Estimate"  data="new_estimate" />
+          <menuitem label="Find Estimate" data="find_estimate"/>
+        </menuitem>
+      
+        <menuitem label="Dispatch" >
+          <menuitem label="Job Schedule" data="global_job_schedule" />
+        </menuitem>
+	
+	<menuitem label="Accounting" enabled="true">
+          <menuitem label="New Mover" data="add_mover" />
+          <menuitem label="Edit Mover" data="edit_mover" />
+          <menuitem label="Movers Payroll" data="mover_payroll" />
+	</menuitem>
+	
+	<menuitem label="Utility">
+          <menuitem label="Change Password" data="change_password" />
+	</menuitem>
+    </mx:XML>
+
+    <mx:XML id="menu_dispatch">
+        <menuitem label="Estimate" id="estimate_menu">
+          <menuitem label="New Estimate"  data="new_estimate" />
+          <menuitem label="Find Estimate" data="find_estimate"/>
+        </menuitem>
+      
+        <menuitem label="Dispatch" >
+          <menuitem label="Job Schedule" data="job_schedule" />
+        </menuitem>
+	
+	<menuitem label="Accounting" enabled="true">
+          <menuitem label="New Mover" data="add_mover" />
+          <menuitem label="Edit Mover" data="edit_mover" />
+          <menuitem label="Movers Payroll" data="mover_payroll" />
+	</menuitem>
+
+	<menuitem label="Utility">
+          <menuitem label="Change Password" data="change_password" />
+          <menuitem label="Change Job Status" data="job_status" />
+	</menuitem>
+    </mx:XML>
+    
+    <mx:XML id="menu_sales">
+        <menuitem label="Estimate" id="estimate_menu">
+          <menuitem label="New Estimate"  data="new_estimate" />
+          <menuitem label="Find Estimate" data="find_estimate"/>
+        </menuitem>
+      
+        <menuitem label="Dispatch" >
+          <menuitem label="Job Schedule" data="job_schedule" />
+        </menuitem>
+
+	<menuitem label="Reports">
+	  <menuitem label="Daily Estimates" data="salesman_daily_estimates" />
+	  <menuitem label="Daily Income" data="salesman_daily_income" />
+	</menuitem>
+	<menuitem label="Utility">
+          <menuitem label="Change Password" data="change_password" />
+	</menuitem>
+    </mx:XML>
+
+    <mx:XML id="menu_customer_service">
+        <menuitem label="Estimate" id="estimate_menu">
+          <menuitem label="New Estimate"  data="new_estimate" />
+          <menuitem label="Find Estimate" data="find_estimate"/>
+        </menuitem>
+      
+        <menuitem label="Dispatch" >
+          <menuitem label="Job Schedule" data="job_schedule" />
+        </menuitem>
+
+	<menuitem label="Utility">
+          <menuitem label="Change Password" data="change_password" />
+	</menuitem>
+    </mx:XML>
+    
+    <mx:RemoteObject id="employee" source="com.movers.session.Utility"
+    	result="employee_Result( event )" fault="mx.controls.Alert.show( 'Error fetching employee info.', 'Error')">
+      <mx:method name="getEmployeeInfo" />
+    </mx:RemoteObject>	      
+    
+    <mx:HBox width="100%" horizontalAlign="left">
+    <mx:MenuBar change="menuHandler(event)" id="menu_bar" visible="false" />
+    
+    <mx:Spacer width="100%" />
+    <mx:Image id="glass" source="@Embed('WEB-INF/flex/user_classes/com/movers/assets/search.gif')" 
+    	toolTip="Search for a job." visible="false" />
+      <mx:TextInput id="search_input" visible="false" enter="findJob()" />
+    <mx:Button id="search_button" label="Search" visible="false" click="findJob()" />
+
+    </mx:HBox>
+
+    <mx:ViewStack width="100%" height="100%" id="myViewStack" visible="false" historyManagement="true">
+
+        <Home id="home" label="Home" xmlns="*" /> 
+
+	<Search id="search" label="Job Search" xmlns="*" />
+	
+	<Dispatch id="dispatch" label="Job Schedule" xmlns="com.movers.*" />
+	
+	<Global_Dispatch id="global_dispatch" label="Job Schedule" 
+		xmlns="com.movers.*" />
+	
+	<Estimate label="New Estimate" id="estimate" width="100%" 
+		height="100%" xmlns="com.movers.estimate.*" />
+	
+	<Open_Job label="Job" id="job" width="100%" height="100%" 
+		xmlns="com.movers.job.*" />
+	
+	
+	<DailyEstimates id="daily_estimates" label="Daily Estimates" 
+		width="100%" height="100%" xmlns="com.movers.reports.admin.*" />
+
+	<DailyEstimatesBySalesman id="daily_estimates_by_salesman" 
+		label="Daily Estimates By Salesman" width="100%" 
+		height="100%" xmlns="com.movers.reports.admin.*" />
+
+	<DailyIncome id="daily_income" label="Daily Income" 
+		width="100%" height="100%" xmlns="com.movers.reports.admin.*" />
+	
+	<DailyIncomeBySalesman id="daily_income_by_salesman" label="Daily Income" 
+		width="100%" height="100%" xmlns="com.movers.reports.admin.*" />
+	
+	<OpenContracts id="open_contracts" label="Open Contracts" width="100%" 
+		height="100%" xmlns="com.movers.reports.admin.*" />
+	
+	<CancelledJobs id="cancelled_jobs" label="Cancelled Jobs" width="100%" 
+		height="100%" xmlns="com.movers.reports.admin.*" />
+
+		
+	
+	<DailyEstimates id="manager_daily_estimates" label="Daily Estimates" 
+		width="100%" height="100%" xmlns="com.movers.reports.manager.*" />
+
+	<DailyEstimatesBySalesman id="manager_daily_estimates_by_salesman" 
+		label="Daily Estimates By Salesman" width="100%" height="100%" 
+		xmlns="com.movers.reports.manager.*" />
+
+	<DailyIncome id="manager_daily_income" label="Daily Income" 
+		width="100%" height="100%" xmlns="com.movers.reports.manager.*" />
+	
+	<DailyIncomeBySalesman id="manager_daily_income_by_salesman" 
+		label="Daily Income by Salesman" width="100%" height="100%" 
+		xmlns="com.movers.reports.manager.*" />
+	
+	<OpenContracts id="manager_open_contracts" label="Open Contracts" 
+		width="100%" height="100%" xmlns="com.movers.reports.manager.*" />
+	
+	<CancelledJobs id="manager_cancelled_jobs" label="Cancelled Jobs" 
+		width="100%" height="100%" xmlns="com.movers.reports.manager.*" />
+	
+	<OwnerReport id="admin_owner_report" label="Owner Report" 
+		width="100%" height="100%" xmlns="com.movers.reports.admin.*" />
+
+
+	<AddMover id="add_mover" label="New Mover"
+		width="100%" height="100%" xmlns="com.movers.dispatch.*" />
+	<EditMover id="edit_mover" label="Edit Mover"
+		width="100%" height="100%" xmlns="com.movers.dispatch.*" />
+	<MoverPayroll id="mover_payroll" label="Movers Payroll"
+		width="100%" height="100%" xmlns="com.movers.dispatch.*" />
+
+	<AddEmployee id="add_employee" label="New Employee"
+		width="100%" height="100%" xmlns="com.movers.hr.manager.*" />
+		
+
+
+	<DailyEstimates id="salesman_daily_estimates" label="Daily Estimates" 
+		width="100%" height="100%" xmlns="com.movers.reports.salesman.*" />
+	
+	<DailyIncome id="salesman_daily_income" label="Daily Income" 
+		width="100%" height="100%" xmlns="com.movers.reports.salesman.*" />
+	
+
+	<Change_Password id="change_password" label="Change Password"
+		width="100%" height="100%" xmlns="com.movers.utility.*" />
+	
+	<Job_Status id="job_status" label="Change Job Status"
+		width="100%" height="100%" xmlns="com.movers.utility.*" />
+	
+	<Admin_Job_Status id="admin_job_status" label="Change Job Status"
+		width="100%" height="100%" xmlns="com.movers.utility.*" />
+	
+	<AdminAddEmployee id="admin_add_employee" label="New Employee"
+		width="100%" height="100%" xmlns="com.movers.hr.admin.*" />
+	
+	<AddAdv id="admin_add_adv" label="Add Advertising Source"
+		width="100%" height="100%" xmlns="com.movers.utility.*" />
+		
+
+    </mx:ViewStack>
+
+</mx:Application>

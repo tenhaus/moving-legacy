@@ -1,0 +1,726 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:HBox width="100%" height="100%" horizontalAlign="center" xmlns:mx="http://www.macromedia.com/2003/mxml" load="initVO();" creationPolicy="all">
+
+   <mx:Script>
+     <![CDATA[
+     import mx.validators.*;
+     import com.movers.VO.*;
+
+     var contactVO:ContactVO;
+     var jobVO:JobVO;
+
+     public function reset()
+     {
+       
+       fromname.text = "";
+       fromname.validationSucceeded();
+       fromaddress1.text = "";
+       fromaddress1.validationSucceeded();
+       fromaddress2.text = "";
+       fromaddress2.validationSucceeded();
+       fromcounty.text = "";
+       fromcounty.validationSucceeded();
+       fromcity.text = "";
+       fromcity.validationSucceeded();
+       fromzip.text = "";
+       fromzip.validationSucceeded();
+       fromemail.text = "";
+       fromemail.validationSucceeded();
+       fromhomephone.text = "";
+       fromhomephone.validationSucceeded();
+       fromworkphone.text = "";
+       fromworkphone.validationSucceeded();
+       fromfax.text = "";
+       fromfax.validationSucceeded();
+       fromcellphone.text = "";
+       fromcellphone.validationSucceeded();
+       tocellphone.text = "";
+       tocellphone.validationSucceeded();
+       
+       
+       toname.text = "";
+       toname.validationSucceeded();
+       toaddress1.text = "";
+       toaddress1.validationSucceeded();
+       toaddress2.text = "";
+       toaddress2.validationSucceeded();
+       tocounty.text = "";
+       tocounty.validationSucceeded();
+       tocity.text = "";
+       tocity.validationSucceeded();
+       tozip.text = "";
+       tozip.validationSucceeded();
+       toemail.text = "";
+       toemail.validationSucceeded();
+       tohomephone.text = "";
+       tohomephone.validationSucceeded();
+       toworkphone.text = "";
+       toworkphone.validationSucceeded();
+       tofax.text = "";
+       tofax.validationSucceeded();
+       
+       fromstate.selectedIndex = 0;
+       fromstate.text = "";
+       fromstate.validationSucceeded();
+       
+       tostate.selectedIndex = 0;
+       tostate.text = "";
+       tostate.validationSucceeded();
+       
+       preferdate.selectedDate = null;
+       preferdate.validationSucceeded();
+       
+       prefertimefrom.selectedIndex = 0;
+       prefertimefrom.text = "";
+       prefertimefrom.validationSucceeded();
+       
+       prefertimeto.selectedIndex = 0;
+       prefertimeto.text = "";
+       prefertimeto.validationSucceeded();
+       
+       adv.selectedIndex = 0;
+       adv.text = "";
+       adv.validationSucceeded();
+       
+       takenby.selectedIndex = 0;
+       takenby.text = "";
+       takenby.validationSucceeded();
+       
+       bookedby.selectedIndex = 0;
+       bookedby.text = "";
+       bookedby.validationSucceeded();
+       
+       jobtype.selectedIndex = 0;
+       jobtype.text = "";
+       jobtype.validationSucceeded();
+       
+       contactVO = new ContactVO();
+       jobVO = new JobVO();       
+     }
+
+     function getVars() : LoadVars 
+     {
+       var contactVO:ContactVO = getContactVO();
+       var jobVO:JobVO = getJobVO();
+       
+       var vars:LoadVars = new LoadVars();
+       
+       vars.from_name = contactVO._from_name;
+       vars.from_address = contactVO._from_address_1 + " " + contactVO._from_address_2
+       vars.from_county = contactVO._from_county;
+       vars.from_city = contactVO._from_city;
+       vars.from_state = contactVO._from_state;
+       vars.from_zip = contactVO._from_zip;       
+       vars.from_email = contactVO._from_email;
+       vars.from_home_phone = contactVO._from_home_phone;
+       vars.from_work_phone = contactVO._from_work_phone;
+       vars.from_cell_phone = contactVO._from_cell_phone;
+       vars.from_fax = contactVO._from_fax;
+       
+       vars.to_name = contactVO._to_name;
+       vars.to_address = contactVO._to_address_1 + " " + contactVO._to_address_2
+       vars.to_county = contactVO._to_county;
+       vars.to_city = contactVO._to_city;
+       vars.to_state = contactVO._to_state;
+       vars.to_zip = contactVO._to_zip;
+       vars.to_email = contactVO._to_email;
+       vars.to_home_phone = contactVO._to_home_phone;
+       vars.to_work_phone = contactVO._to_work_phone;
+       vars.to_cell_phone = contactVO._to_cell_phone;
+       vars.to_fax = contactVO._to_fax;
+
+       vars.other_prefered_date = jobVO._from_date;
+       vars.other_from_time = jobVO._from_time;
+       vars.other_to_time = jobVO._to_time;
+       vars.other_taken_by = jobVO._taken_by;
+       vars.other_booked_by = jobVO._booked_by;
+       vars.other_job_type = jobVO._job_type;
+       vars.other_adv = jobVO._adv;
+       vars.other_agent = jobVO._agent;
+       vars.other_storage_location = jobVO._storage_location;
+       vars.other_truck_number = jobVO._truck_number;
+       vars.other_trip_number = jobVO._trip_number;
+       vars.other_confirmed_by = jobVO._confirmed_by;
+
+       return( vars );
+     }
+     
+     function findIndex( comp, itemvalue ) {
+       var blah:Array = mx.utils.ArrayUtil.toArray( comp.dataProvider );
+       for( var i:Number = 0; i < blah.length; i++ ) {
+         var tmp = blah[i].label;
+         if( String(tmp) == String(itemvalue) ) {
+           return( i );
+	 }
+       }
+       return( 0 );
+     }
+
+     function findStateIndex( comp, itemvalue ) {
+       var blah:Array = mx.utils.ArrayUtil.toArray( comp.dataProvider );
+       for( var i:Number = 0; i < blah.length; i++ ) {
+         var tmp = blah[i].data;
+         if( String(tmp) == String(itemvalue) ) {
+           return( i );
+	 }
+       }
+       return( 0 );
+     }
+
+     public function syncInputs()
+     {
+       contact_dp.fromname = contactVO._from_name;
+       contact_dp.fromaddress1 = contactVO._from_address_1;
+       contact_dp.fromaddress2 = contactVO._from_address_2;
+       contact_dp.fromcounty = contactVO._from_county;
+       contact_dp.fromcity = contactVO._from_city;
+       contact_dp.fromstate = contactVO._from_state;
+       contact_dp.fromzip = contactVO._from_zip;
+       contact_dp.fromemail = contactVO._from_email;
+       contact_dp.fromhomephone = contactVO._from_home_phone;
+       contact_dp.fromworkphone = contactVO._from_work_phone;
+       contact_dp.fromcellphone = contactVO._from_cell_phone;
+       contact_dp.fromfax = contactVO._from_fax;
+       contact_dp.fromcros = contactVO._from_cross_street;
+
+       contact_dp.toname = contactVO._to_name;
+       contact_dp.toaddress1 = contactVO._to_address_1;
+       contact_dp.toaddress2 = contactVO._to_address_2;
+       contact_dp.tocounty = contactVO._to_county;
+       contact_dp.tocity = contactVO._to_city;
+       contact_dp.tostate = contactVO._to_state;
+       contact_dp.tozip = contactVO._to_zip;
+       contact_dp.toemail = contactVO._to_email;
+       contact_dp.tohomephone = contactVO._to_home_phone;
+       contact_dp.toworkphone = contactVO._to_work_phone;
+       contact_dp.tocellphone = contactVO._to_cell_phone;
+       contact_dp.tofax = contactVO._to_fax;
+       contact_dp.tocros = contactVO._to_cross_street;
+       
+       fromstate.selectedIndex = findStateIndex( fromstate, contactVO._from_state );
+       tostate.selectedIndex = findStateIndex( tostate, contactVO._to_state );
+
+       adv.selectedIndex = findIndex( adv, jobVO._adv );
+       
+       bookedby.selectedIndex = findIndex( bookedby, jobVO._booked_by );
+       takenby.selectedIndex = findIndex( takenby, jobVO._taken_by );
+       
+       prefertimefrom.selectedIndex = findIndex( prefertimefrom, jobVO._from_time );
+       prefertimeto.selectedIndex = findIndex( prefertimeto, jobVO._to_time );
+       jobtype.selectedIndex = findIndex( jobtype, jobVO._job_type );
+ 
+       var d:Date = mx.formatters.DateFormatter.parseDateString( jobVO._from_date );
+       preferdate.selectedDate = d;
+
+       agent.selectedIndex = findIndex( agent, jobVO._agent );
+       
+       storagelocation.text = jobVO._storage_location;
+       trucknumber.text = jobVO._truck_number;
+       tripnumber.text  = jobVO._trip_number;
+       confirmedby.text = jobVO._confirmed_by;
+     }
+
+     public function formatDate( date:Date ):String
+     {
+       return dateFormatter.format( date );
+     }
+      
+     public function initVO() 
+     {
+       contactVO = new ContactVO();
+       jobVO     = new JobVO();
+       var delegate = mx.utils.Delegate.create( this, syncInputs );
+       super.init();
+     }
+
+     public function checkRole()
+     {
+       if( _global.session._role == "Moving Advisor" )
+       {
+         confirmedby.enabled = false;
+       }
+     }
+     
+     public function getSalesman_Result( results )
+     {
+       /* convert to a format that can be used everywhere */
+       var tmp:Array = new Array();
+       for( var i=0; i< results.length; i++ )
+       {
+         tmp.push( {data: results.getItemAt(i).username, label: results.getItemAt(i).username } );
+       }
+       
+       takenby.dataProvider = tmp;
+       bookedby.dataProvider = tmp;
+       
+       /* hack to get this to show up on first load */
+       //bookedby.selectedIndex = findIndex( bookedby, jobVO._booked_by );
+       //takenby.selectedIndex = findIndex( takenby, jobVO._taken_by );
+		     
+     }
+     
+     public function isValid() :Boolean
+     { 
+       var contactValid:Boolean = false;
+       var jobValid:Boolean = false;
+       
+       jobValid = Validator.isStructureValid(this,'job');
+       contactValid = Validator.isStructureValid(this,'contact');
+       if( !jobValid || !contactValid )
+         return false;
+       else
+         return true;
+     }
+
+     public function getJobVO()
+     {
+       jobVO._booked_by = bookedby.selectedItem.data;
+       jobVO._taken_by  = takenby.selectedItem.data;
+       jobVO._agent = agent.selectedItem.data;
+       return( jobVO );
+     }
+     
+     public function getContactVO()
+     {
+       contactVO._from_state = fromstate.selectedItem.data;
+       contactVO._to_state   = tostate.selectedItem.data;
+       return( contactVO );
+     }
+
+     public function setVO( new_job, new_contact )
+     {
+       jobVO = new_job;       
+       contactVO = new_contact;
+
+       var tmp:Array = new Array();
+       for( var i=0; i< contactVO._employees.length; i++ )
+       {
+         tmp.push( {data: contactVO._employees.getItemAt(i), label: contactVO._employees.getItemAt(i) } );
+       }
+
+       var tmpAgents = new Array();
+       for( var i=0; i< jobVO._agents.length; i++ )
+       {
+         tmpAgents.push( {data: jobVO._agents.getItemAt(i), label: jobVO._agents.getItemAt(i) } );
+       }
+       
+       var tmpAdv = new Array();
+       for( var i=0; i< contactVO._adv.length; i++ )
+       {
+         tmpAdv.push( {data: contactVO._adv.getItemAt(i), label: contactVO._adv.getItemAt(i) } );
+       }
+
+       takenby.setDataProvider( tmp );
+       bookedby.setDataProvider( tmp );
+
+       agent.setDataProvider( tmpAgents );
+
+       adv.setDataProvider( tmpAdv );
+       
+       contactVO._employees = tmp;
+       contactVO._adv = tmpAdv;
+       jobVO._agents    = tmpAgents;
+       
+       doLater( this,'syncInputs' ); 
+     }
+
+
+     function validateForm( validator, value )
+     {
+       Validator.isValid( this, 'contact.fromname' );
+       Validator.isValid( this, 'contact.fromaddress1' );
+       Validator.isValid( this, 'contact.fromcity' );
+       Validator.isValid( this, 'contact.fromstate' );
+       Validator.isValid( this, 'contact.fromemail' );
+       Validator.isValid( this, 'contact.fromzip' );
+       Validator.isValid( this, 'contact.fromhomephone' );
+       Validator.isValid( this, 'contact.fromworkphone' );
+       Validator.isValid( this, 'contact.fromfax' );
+       
+       Validator.isValid( this, 'contact.toname' );
+       Validator.isValid( this, 'contact.toaddress1' );
+       Validator.isValid( this, 'contact.tocity' );
+       Validator.isValid( this, 'contact.tostate' );
+       Validator.isValid( this, 'contact.toemail' );
+       Validator.isValid( this, 'contact.tozip' );
+       Validator.isValid( this, 'contact.tohomephone' );
+       Validator.isValid( this, 'contact.toworkphone' );
+       Validator.isValid( this, 'contact.tofax' );
+       
+       Validator.isValid( this, 'job.fromdate' );
+       Validator.isValid( this, 'job.fromtime' );
+       Validator.isValid( this, 'job.totime' );
+       Validator.isValid( this, 'job.takenby' );
+       Validator.isValid( this, 'job.bookedby' );
+       Validator.isValid( this, 'job.jobtype' );
+       
+       if( validator.hasErrors() )
+         return;
+     }
+     
+     public function fillByZipFrom_Result( result )
+     {
+       var rec = result.getItemAt(0);
+       if( rec.county == undefined || rec.city == undefined || rec.state == undefined )
+       {
+         fromcounty.text = "";
+	 fromcity.text = "";
+	 fromstate.selectedIndex = 0;
+	 return;				    
+       }
+       contact_dp.fromcounty = rec.county;
+       contact_dp.fromcity   = rec.city;
+       fromstate.selectedIndex = findStateIndex( fromstate, rec.state );
+     }
+     
+     public function fillByZipTo_Result( result )
+     {
+       var rec = result.getItemAt(0);
+       if( rec.county == undefined || rec.city == undefined || rec.state == undefined )
+       {
+         tocounty.text = "";
+	 tocity.text = "";
+	 tostate.selectedIndex = 0;
+	 return;				    
+       }
+				     
+       contact_dp.tocounty = rec.county;
+       contact_dp.tocity   = rec.city;
+       tostate.selectedIndex = findStateIndex( tostate, rec.state );
+     }
+     ]]>
+     
+   </mx:Script>
+
+  <mx:Validator field="contact" validate="validateForm( event.validator, event.value );" listener="this" />
+  <mx:Validator field="job" validate="validateForm( event.validator, event.value );" listener="this" />
+  
+  <mx:EmailValidator field="contact.fromemail" required="false" />
+  <mx:ZipCodeValidator field="contact.fromzip" />
+  <mx:PhoneNumberValidator field="contact.fromhomephone" />
+  <mx:PhoneNumberValidator field="contact.fromworkphone" required="false" />
+  <mx:PhoneNumberValidator field="contact.fromfax" required="false" />
+  
+  <mx:EmailValidator field="contact.toemail" required="false" />
+  <mx:ZipCodeValidator field="contact.tozip" />
+  <mx:PhoneNumberValidator field="contact.tohomephone" required="false" />
+  <mx:PhoneNumberValidator field="contact.toworkphone" required="false" />
+  <mx:PhoneNumberValidator field="contact.tofax" required="false" />
+   
+   
+  <mx:StringValidator field="contact.fromname" maxLength="50" tooLongError="Name must be no longer than 50 characters." />
+  <mx:StringValidator field="contact.fromaddress1" maxLength="50" tooLongError="Address must be no longer than 50 characters." />
+  <mx:StringValidator field="contact.fromcity" maxLength="50" tooLongError="City must be no longer than 50 characters." />
+  <mx:StringValidator field="contact.fromstate" />
+  
+  <mx:StringValidator field="contact.toname" maxLength="50" tooLongError="Name must be no longer than 50 characters." required="false" />
+  <mx:StringValidator field="contact.toaddress1" maxLength="50" tooLongError="Address must be no longer than 50 characters." />
+  <mx:StringValidator field="contact.tocity" maxLength="50" tooLongError="City must be no longer than 50 characters." />
+  <mx:StringValidator field="contact.tostate" />
+  
+  <mx:DateValidator   field="job.fromdate" />
+  <mx:StringValidator field="job.fromtime" />
+  <mx:StringValidator field="job.totime" />
+  <mx:StringValidator field="job.takenby" />
+  <mx:StringValidator field="job.bookedby" />
+  <mx:StringValidator field="job.jobtype" />
+  
+   <mx:RemoteObject id="getEmployees" source="com.movers.session.Utility" 
+   	result="getSalesman_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+     <mx:method name="getEmployees" />
+   </mx:RemoteObject>
+
+   <mx:RemoteObject id="fillByZipTo" source="com.movers.session.Utility"
+  	 result="fillByZipTo_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+     <mx:method name="fillByZip" />
+   </mx:RemoteObject>
+   
+   <mx:RemoteObject id="fillByZipFrom" source="com.movers.session.Utility"
+   	result="fillByZipFrom_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+     <mx:method name="fillByZip" />
+   </mx:RemoteObject>
+
+	    
+   <mx:DateFormatter id="dateFormatter" formatString="MM-DD-YYYY" />
+   
+   <mx:Model id="states" source="states.xml"/>
+   <mx:Model id="times" source="times.xml"/>
+   <mx:Model id="job_types" source="job_types.xml"/>
+   
+   <mx:Binding source="contact.fromname" destination="contactVO._from_name" />
+   <mx:Binding source="contact.fromaddress1" destination="contactVO._from_address_1" />
+   <mx:Binding source="contact.fromaddress2" destination="contactVO._from_address_2" />
+   <mx:Binding source="contact.fromcounty" destination="contactVO._from_county" />
+   <mx:Binding source="contact.fromcity" destination="contactVO._from_city" />
+   <mx:Binding source="contact.fromzip" destination="contactVO._from_zip" />
+   <mx:Binding source="contact.fromemail" destination="contactVO._from_email" />
+   <mx:Binding source="contact.fromhomephone" destination="contactVO._from_home_phone" />
+   <mx:Binding source="contact.fromworkphone" destination="contactVO._from_work_phone" />
+   <mx:Binding source="contact.fromcellphone" destination="contactVO._from_cell_phone" />
+   <mx:Binding source="contact.fromfax" destination="contactVO._from_fax" />
+   <mx:Binding source="contact.fromcros" destination="contactVO._from_cross_street" />
+
+   <mx:Binding source="contact.toname" destination="contactVO._to_name" />
+   <mx:Binding source="contact.toaddress1" destination="contactVO._to_address_1" />
+   <mx:Binding source="contact.toaddress2" destination="contactVO._to_address_2" />   
+   <mx:Binding source="contact.tocounty" destination="contactVO._to_county" />
+   <mx:Binding source="contact.tocity" destination="contactVO._to_city" />
+   <mx:Binding source="contact.tozip" destination="contactVO._to_zip" />
+   <mx:Binding source="contact.toemail" destination="contactVO._to_email" />
+   <mx:Binding source="contact.tohomephone" destination="contactVO._to_home_phone" />
+   <mx:Binding source="contact.toworkphone" destination="contactVO._to_work_phone" />
+   <mx:Binding source="contact.tocellphone" destination="contactVO._to_cell_phone" />
+   <mx:Binding source="contact.tofax" destination="contactVO._to_fax" />
+   <mx:Binding source="contact.tocros" destination="contactVO._to_cross_street" />
+
+   <mx:Binding source="job.jobtype" destination="jobVO._job_type" />
+   <mx:Binding source="job.status" destination="jobVO._status" />
+   <mx:Binding source="job.storagelocation" destination="jobVO._storage_location" />
+   <mx:Binding source="job.fromtime" destination="jobVO._from_time" />
+   <mx:Binding source="job.totime" destination="jobVO._to_time" />
+   <mx:Binding source="job.fromdate" destination="jobVO._from_date" />
+   <mx:Binding source="job.todate" destination="jobVO._to_date" />
+   <mx:Binding source="job.tripnum" destination="jobVO._trip_number" />
+   <mx:Binding source="job.trucknum" destination="jobVO._truck_number" />
+   <mx:Binding source="job.confirmedby" destination="jobVO._confirmed_by" />
+   <mx:Binding source="job.adv" destination="jobVO._adv" />
+					  
+   <mx:Model id="contact_dp">
+     <fromname></fromname>
+     <fromaddress1></fromaddress1>
+     <fromaddress2></fromaddress2>
+     <fromcounty></fromcounty>
+     <fromcity></fromcity>
+     <fromstate></fromstate>
+     <fromzip></fromzip>
+     <fromemail></fromemail>
+     <fromhomephone></fromhomephone>
+     <fromworkphone></fromworkphone>
+     <fromcellphone></fromcellphone>
+     <fromfax></fromfax>
+     <fromcross></fromcross>
+     
+     <toname></toname>
+     <toaddress1></toaddress1>
+     <toaddress2></toaddress2>
+     <tocounty></tocounty>
+     <tocity></tocity>
+     <tostate></tostate>
+     <tozip></tozip>
+     <toemail></toemail>
+     <tohomephone></tohomephone>
+     <toworkphone></toworkphone>
+     <tocellphone></tocellphone>
+     <tofax></tofax>
+     <tofax2></tofax2>
+     <tocross></tocross>
+   </mx:Model>
+																      
+   <mx:Model id="contact">
+     <fromname>{ fromname.text }</fromname>
+     <fromaddress1>{ fromaddress1.text }</fromaddress1>
+     <fromaddress2>{ fromaddress2.text }</fromaddress2>
+     <fromcounty>{ fromcounty.text }</fromcounty>
+     <fromcity>{ fromcity.text }</fromcity>
+     <fromstate>{ fromstate.text }</fromstate>
+     <fromzip>{ fromzip.text }</fromzip>
+     <fromemail>{ fromemail.text }</fromemail>
+     <fromhomephone>{ fromhomephone.text  }</fromhomephone>
+     <fromworkphone>{ fromworkphone.text }</fromworkphone>
+     <fromcellphone>{ fromcellphone.text }</fromcellphone>
+     <fromfax>{ fromfax.text }</fromfax>
+     <fromcross>{ ""  }</fromcross>
+     
+     <toname>{ toname.text }</toname>
+     <toaddress1>{ toaddress1.text }</toaddress1>
+     <toaddress2>{ toaddress2.text }</toaddress2>
+     <tocounty>{ tocounty.text }</tocounty>
+     <tocity>{ tocity.text }</tocity>
+     <tostate>{ tostate.text }</tostate>
+     <tozip>{ tozip.text }</tozip>
+     <toemail>{ toemail.text }</toemail>
+     <tohomephone>{ tohomephone.text  }</tohomephone>
+     <toworkphone>{ toworkphone.text }</toworkphone>
+     <tocellphone>{ tocellphone.text }</tocellphone>
+     <tofax>{ tofax.text }</tofax>
+     <tocross>{ ""  }</tocross>
+   </mx:Model>
+
+   <mx:Model id="job">
+     <jobtype>{ jobtype.text }</jobtype>
+     <status> "" </status>
+     <storagelocation>{ storagelocation.text }</storagelocation>
+     <fromtime>{ prefertimefrom.text }</fromtime>
+     <totime>{ prefertimeto.text }</totime>     
+     <fromdate>{ preferdate.text }</fromdate>
+     <todate>{ preferdate.text }</todate>
+     <agent>{ agent.text }</agent>
+     <tripnum>{ tripnumber.text }</tripnum>
+     <trucknum>{ trucknumber.text }</trucknum>
+     <takenby>{ takenby.text }</takenby>
+     <bookedby>{ bookedby.text }</bookedby>
+     <confirmedby>{ confirmedby.text }</confirmedby>
+     <adv>{ adv.text }</adv>
+   </mx:Model>
+
+   <mx:Canvas> 
+     <mx:Form>
+     <mx:FormHeading label="Pickup Information" />
+   
+     <mx:FormItem id="fromnameitem" label="Name" required="true">
+       <mx:TextInput id="fromname" text="{ contact_dp.fromname }"  width="180" />
+     </mx:FormItem>
+
+     <mx:FormItem id="fromaddressitem" label="Address" required="true">
+       <mx:TextInput id="fromaddress1" text="{ contact_dp.fromaddress1 }" width="180"/>
+       <mx:TextInput id="fromaddress2" text="{ contact_dp.fromaddress2 }" width="180"/>
+     </mx:FormItem>
+
+     <mx:FormItem id="fromcountyitem" label="County">
+       <mx:TextInput id="fromcounty" text="{ contact_dp.fromcounty }" width="180"/>
+     </mx:FormItem>
+
+     <mx:FormItem id="fromcityitem" label="City" required="true">
+       <mx:TextInput id="fromcity" text="{ contact_dp.fromcity }" width="180"/>
+     </mx:FormItem>
+
+     <mx:FormItem id="fromstateitem" label="State" required="true" >
+       <mx:ComboBox id="fromstate" dataProvider="{ states.state }" />
+     </mx:FormItem>
+
+   <mx:FormItem id="fromzipitem" label="Zip" required="true">
+     <mx:TextInput id="fromzip" width="90" text="{ contact_dp.fromzip }" enter="fillByZipFrom.fillByZip( fromzip.text );"/>
+   </mx:FormItem>
+
+   <mx:FormItem id="fromemailitem" label="Email">
+     <mx:TextInput id="fromemail" text="{ contact_dp.fromemail }" width="180"/>
+   </mx:FormItem>
+
+   <mx:FormItem id="fromhomephoneitem" label="Home Phone" required="true">
+     <mx:TextInput id="fromhomephone" text="{ contact_dp.fromhomephone }" width="180"/>
+   </mx:FormItem>
+
+   <mx:FormItem id="fromworkphoneitem" label="Work Phone">
+     <mx:TextInput id="fromworkphone" text="{ contact_dp.fromworkphone }" width="180"/>
+   </mx:FormItem>
+   
+   <mx:FormItem label="Cell Phone">
+     <mx:TextInput id="fromcellphone" text="{ contact_dp.fromcellphone }" width="180"/>
+   </mx:FormItem>
+
+   <mx:FormItem id="fromfaxitem" label="Fax">
+     <mx:TextInput id="fromfax" text="{ contact_dp.fromfax }" width="180"/>
+   </mx:FormItem>
+   </mx:Form>
+   </mx:Canvas>
+
+   <mx:Canvas>
+     <mx:Form>
+   
+       <mx:FormHeading label="Delivery Information" />
+       
+       <mx:FormItem id="tonameitem" label="Name">
+       <mx:TextInput id="toname" text="{ contact_dp.toname }" width="180"/>
+       </mx:FormItem>
+       
+       <mx:FormItem id="toaddressitem" label="Address" required="true">
+       <mx:TextInput id="toaddress1" text="{ contact_dp.toaddress1 }" width="180"/>
+       <mx:TextInput id="toaddress2" text="{ contact_dp.toaddress2 }" width="180"/>
+       </mx:FormItem>
+       
+       <mx:FormItem id="tocountyitem" label="County">
+       <mx:TextInput id="tocounty" text="{ contact_dp.tocounty }" width="180"/>
+       </mx:FormItem>
+       
+       <mx:FormItem id="tocityitem" label="City" required="true">                                                            
+         <mx:TextInput id="tocity" text="{ contact_dp.tocity }" width="180"/>
+       </mx:FormItem>
+       
+       <mx:FormItem id="tostateitem" label="State" required="true">                      
+       <mx:ComboBox id="tostate" dataProvider="{ states.state }" />         
+       </mx:FormItem>
+       
+       <mx:FormItem id="tozipitem" label="Zip" required="true">   
+       <mx:TextInput id="tozip" width="90" text="{ contact_dp.tozip }" enter="fillByZipTo.fillByZip( tozip.text );" />     
+       </mx:FormItem>
+       
+   <mx:FormItem id="toemailitem" label="Email">                         
+       <mx:TextInput id="toemail" text="{ contact_dp.toemail }" width="180"/>  
+       </mx:FormItem>
+       
+       <mx:FormItem id="tohomephoneitem" label="Home Phone">
+       <mx:TextInput id="tohomephone" text="{ contact_dp.tohomephone }" width="180"/> 
+       </mx:FormItem>      
+       
+       <mx:FormItem id="toworkphoneitem" label="Work Phone">
+       <mx:TextInput id="toworkphone" text="{ contact_dp.toworkphone }" width="180"/>    
+       </mx:FormItem>
+       
+       <mx:FormItem label="Cell Phone">
+         <mx:TextInput id="tocellphone" text="{ contact_dp.tocellphone }" width="180"/>
+       </mx:FormItem>
+       
+       <mx:FormItem id="tofaxitem" label="Fax">
+       <mx:TextInput id="tofax" text="{ contact_dp.tofax }" width="180"/>    
+       </mx:FormItem>
+       </mx:Form>
+	</mx:Canvas>
+	
+	<mx:VBox>	
+	<mx:Canvas>
+	    <mx:Form>
+	    <mx:FormHeading label="Other Information" />
+	    
+	    <mx:FormItem id="preferdateformitem" label="Prefered Date" required="true">	    
+	      <mx:DateField id="preferdate" dateFormatter="formatDate" />
+	    </mx:FormItem>
+	    
+	    <mx:FormItem id="prefertimefromformitem" label="From Time" required="true">
+	      <mx:ComboBox id="prefertimefrom" dataProvider="{ times.time }"/>
+	    </mx:FormItem>
+	    
+	    <mx:FormItem id="prefertimetoformitem" label="To Time" required="true">
+	      <mx:ComboBox id="prefertimeto" dataProvider="{ times.time }"/>
+	    </mx:FormItem>
+
+	    <mx:FormItem id="takenbyformitem" label="Taken By" required="true">
+	      <mx:ComboBox id="takenby" />
+	    </mx:FormItem>
+	    
+	    <mx:FormItem id="bookedbyformitem" label="Booked By" required="true">
+	      <mx:ComboBox id="bookedby" />
+	    </mx:FormItem>
+	    
+	    <mx:FormItem id="statusformitem" label="Job Type" required="true">
+	      <mx:ComboBox id="jobtype" dataProvider="{ job_types.type }" />
+	    </mx:FormItem>
+	    
+	    <mx:FormItem id="advformitem" label="Adv">	    
+	      <mx:ComboBox id="adv" />
+	    </mx:FormItem>
+	    
+	    <mx:FormItem label="Agent">
+	      <mx:ComboBox id="agent" />
+	    </mx:FormItem>
+	    
+	    <mx:FormItem label="Storage Location">
+	      <mx:TextInput width="140" id="storagelocation" />
+	    </mx:FormItem>
+	    
+	    <mx:FormItem label="Truck Number">
+	      <mx:TextInput width="140" id="trucknumber" />
+	    </mx:FormItem>
+	    
+	    <mx:FormItem label="Trip Number">
+	      <mx:TextInput width="140" id="tripnumber" />
+	    </mx:FormItem>
+	    
+	    <mx:FormItem label="Confirmed By">
+	      <mx:TextInput width="140" id="confirmedby" load="checkRole()" />
+	    </mx:FormItem>
+
+	    </mx:Form>
+	    </mx:Canvas>
+	</mx:VBox>
+</mx:HBox>

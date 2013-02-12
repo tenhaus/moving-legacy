@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Panel width="100%" height="100%" title="Daily Income." horizontalAlign="right" xmlns:mx="http://www.macromedia.com/2003/mxml">
+
+<mx:Script>
+
+<![CDATA[
+import com.movers.Utility;
+
+[Event("LoadJobEvent")]
+
+var doubleClickTime:Number=200;
+var lastClicked;
+var lastIndex;
+
+
+function checkDoubleClick( event ) {
+  var dt=new Date();
+  var ms=dt.getTime();
+  var last=lastClicked;
+  lastClicked=ms;
+
+  if( dgrid.selectedIndex != lastIndex )
+  {
+    lastIndex = dgrid.selectedIndex;
+    return;
+  }
+  if (last==undefined || (ms-last)>doubleClickTime) {
+    return;
+  }
+  lastClicked=0;
+
+  var rec = dgrid.dataProvider.getItemAt( dgrid.selectedIndex );
+  dispatchEvent( { type: "LoadJobEvent", job_id: Number(rec.job), company_id: Number(rec.company_id) } );
+}
+
+public function formatDate( date:Date ):String
+{
+  return dateFormatter.format( date );
+}
+
+public function handleResults( results )
+{
+  if( results.getLength() != undefined ) 
+  { 
+    this.title = "Daily Income.  Total of " + results.getLength() + " jobs.";
+  }
+  
+  var total:Number     = 0;
+  var estimated:Number = 0;
+  
+  for( var i=0; i<results.getLength(); i++ )
+  {
+    var rec = results.getItemAt(i);
+    
+    if( Number(rec.estimated) )
+    {
+      estimated += Number( rec.estimated );
+    }
+    if( Number(rec.total) ) 
+    {
+      total += Number( rec.total );
+    }
+    
+    rec.date = formatDate( rec.date );
+    if( !Number(rec.estimated) ) {
+      rec.estimated = "0";
+    }
+    if( !Number(rec.total) ) {
+      rec.estimated = "0";
+    }
+    rec.estimated = USDformatter.format( rec.estimated );
+    rec.total = USDformatter.format( rec.total );
+  }
+  estimated_total_label.text = "Estimated: " + USDformatter.format( estimated );
+  total_label.text = "Total: " + USDformatter.format( total );
+  
+  dgrid.dataProvider = results;
+}
+
+
+public function fetchData() 
+{
+  if( from_date.selectedDate == undefined || to_date.selectedDate == undefined ) 
+  {
+    return;
+  }
+  var salesman:String = _global.session._username;
+  var company_id:Number = _global.session._company_id;
+  dailyIncome.getDailyIncomeBySalesman( salesman, formatDate(from_date.selectedDate), formatDate(to_date.selectedDate), company_id );
+}
+
+
+public function resetDate()
+{
+  var d:Date = new Date();
+  from_date.selectedDate = d;
+  to_date.selectedDate = d;
+}
+
+
+public function subtractDay()
+{
+  var util:Utility = new Utility;
+  var d:Date = from_date.selectedDate;
+  var d2:Date = util.subtractDay( d );
+
+  from_date.selectedDate = d2;
+  to_date.selectedDate   = d2;
+
+  fetchData();
+}
+
+public function addDay()
+{
+  var util:Utility = new Utility;
+  var d:Date = from_date.selectedDate;
+  var d2:Date = util.addDay( d );
+
+  from_date.selectedDate = d2;
+  to_date.selectedDate   = d2;
+
+  fetchData();
+}      
+]]>
+</mx:Script>
+
+
+<mx:DateFormatter id="dateFormatter" formatString="MM-DD-YYYY" />
+<mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+	decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left"/>
+
+<mx:RemoteObject id="dailyIncome" source="com.movers.reports.DailyIncome"
+	result="handleResults( event.result );" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="getDailyIncomeBySalesman" />
+</mx:RemoteObject>
+
+
+<mx:DataGrid id="dgrid" width="100%" height="100%" change="checkDoubleClick()">
+  <mx:columns>
+    <mx:Array>
+      <mx:DataGridColumn columnName="job" />
+      <mx:DataGridColumn columnName="name" width="200" />
+      <mx:DataGridColumn columnName="status" />
+      <mx:DataGridColumn columnName="date" />
+      <mx:DataGridColumn columnName="estimated" />
+      <mx:DataGridColumn columnName="total" />
+    </mx:Array>
+  </mx:columns>
+</mx:DataGrid>
+						
+<mx:ControlBar horizontalAlign="right">
+    
+	<mx:Label id="estimated_total_label" text="Estimated: $0.00" />
+        <mx:Label id="total_label" text="Total: $0.00" />
+	<mx:Spacer width="100%" />
+    
+        <mx:Label text="From" />
+        <mx:DateField id="from_date" dateFormatter="formatDate" change="fetchData();" />
+        <mx:Label text="To" />
+        <mx:DateField id="to_date" dateFormatter="formatDate" change="fetchData();" load="resetDate()" />
+	
+	<mx:Image source="@Embed('../../assets/back.png')" toolTip="Previous Day" mouseDown="subtractDay()" />
+	<mx:Image source="@Embed('../../assets/gtk-refresh.png')" toolTip="Reload" mouseDown="fetchData()" />
+	<mx:Image source="@Embed('../../assets/forward.png')" toolTip="Next Day" mouseDown="addDay()" />
+				
+
+</mx:ControlBar>
+</mx:Panel>

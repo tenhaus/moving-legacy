@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Panel title="Search for a job." xmlns:mx="http://www.macromedia.com/2003/mxml" width="100%" height="100%" creationPolicy="all">
+
+  <mx:RemoteObject id="jobFinder" source="com.movers.session.Utility"
+        result="jobFinder_Result(event.result)" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+    <mx:method name="findJob" />
+  </mx:RemoteObject>
+  
+  <mx:RemoteObject id="sessionUtil" source="com.movers.session.Utility"
+  	result="load_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+    <mx:method name="load" />
+  </mx:RemoteObject>
+		  
+
+  <mx:Script>
+  <![CDATA[
+    var doubleClickTime:Number=200;
+    var lastClicked;
+    var lastIndex;
+
+    [Event("LoadJobEvent")]
+
+    public function jobFinder_Result( result )
+    {
+      dgrid.dataProvider = result;
+    }
+
+    public function loadJob()
+    {
+      var rec = dgrid.dataProvider.getItemAt( dgrid.selectedIndex );
+      dispatchEvent( { type: "LoadJobEvent", job_id: Number(rec.job_id) , company_id: Number(rec.company_id) } );
+    }
+
+    function checkDoubleClick( event ) {
+      var dt=new Date();
+      var ms=dt.getTime();
+      var last=lastClicked;
+      lastClicked=ms;
+      
+      if( dgrid.selectedIndex != lastIndex )
+      {
+        lastIndex = dgrid.selectedIndex;
+        return;
+      }
+      if (last==undefined || (ms-last)>doubleClickTime) {
+        return;
+      }
+      lastClicked=0;
+      loadJob();
+      
+    }
+					
+
+    public function load_Result( result )
+    {
+      mx.controls.Alert.show( result.commentVO._comment_job + " " + result.commentVO._comment_office );
+    }
+
+    public function findJob( text, company_id )
+    {
+      jobFinder.jobSearch( text, Number(company_id) );
+      searchText.text = text;
+    }
+  ]]>
+  </mx:Script>
+  <mx:DataGrid id="dgrid" width="100%" height="100%" change="checkDoubleClick()" >
+    <mx:columns>
+        <mx:Array>
+	  <mx:DataGridColumn columnName="job_id" headerText="job" />
+	  <mx:DataGridColumn columnName="name"  />
+	  <mx:DataGridColumn columnName="comment" />
+	</mx:Array>
+    </mx:columns>
+  </mx:DataGrid>
+	  
+  <mx:ControlBar>
+
+    <mx:FormItem label="Search for:">
+      <mx:TextInput id="searchText" enter="jobFinder.jobSearch( searchText.text, _global.session._company_id )"/>
+    </mx:FormItem>
+
+    <mx:Button label="Search" click="jobFinder.jobSearch( searchText.text, _global.session._company_id )"/>
+    <mx:Spacer width="100%" />
+    <mx:Button label="Load Selected" click="loadJob()"/>
+
+  </mx:ControlBar>
+</mx:Panel>

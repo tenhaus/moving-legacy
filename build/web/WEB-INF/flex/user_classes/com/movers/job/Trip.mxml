@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:VBox width="100%" height="100%" horizontalAlign="center" xmlns:mx="http://www.macromedia.com/2003/mxml" load="initVO();" creationPolicy="all">
+
+   <mx:Script>
+     <![CDATA[
+     import mx.validators.*;
+     import com.movers.VO.*;
+
+     var tripVO:TripVO;
+
+     public function reset()
+     {
+       tripVO = new TripVO();
+       
+       lot_number.text             = "";
+       color.text                  = "";
+       start_number.text           = "";
+       end_number.text             = "";
+       driver_name.text            = "";
+       helper_name.text            = "";
+       approved_by.text            = "";
+       prior.text                  = "";
+       
+       delivery_date.selectedDate  = null;
+       date_approved.selectedDate  = null;
+       
+       carrier.selectedIndex       = 0;
+       carrier.text                = "";
+     }
+
+     function findIndex( comp, itemvalue ) {
+       var blah:Array = mx.utils.ArrayUtil.toArray( comp.dataProvider );
+       
+       for( var i:Number = 0; i < blah.length; i++ ) {
+         var tmp = blah[i].label;
+         if( String(tmp) == String(itemvalue) ) {
+           return( i );
+	 }
+       }
+       return( 0 );
+     }
+
+     public function syncInputs()
+     {
+       trip_dp.lot_number   = tripVO._lot_number;
+       trip_dp.color	    = tripVO._color;
+       trip_dp.start_number = tripVO._start_number;
+       trip_dp.end_number   = tripVO._end_number;
+       trip_dp.driver_name  = tripVO._driver_name;
+       trip_dp.helper_name  = tripVO._helper_name;
+       trip_dp.approve_by   = tripVO._approve_by;
+       trip_dp.prior        = tripVO._prior;
+
+       carrier.selectedIndex = findIndex( carrier, tripVO._carrier );
+       
+       date_approved.selectedDate = mx.formatters.DateFormatter.parseDateString( tripVO._approve_date );
+       delivery_date.selectedDate = mx.formatters.DateFormatter.parseDateString( tripVO._delivery_date );
+     }
+
+     public function formatDate( date:Date ):String
+     {
+       return dateFormatter.format( date );
+     }
+      
+     public function initVO() 
+     {
+       tripVO = new TripVO();
+     }
+     
+     public function isValid() :Boolean
+     { 
+       var tripValid:Boolean = false;
+       
+       tripValid = Validator.isStructureValid(this,'trip');
+       if( !tripValid )
+         return false;
+       else
+         return true;
+     }
+
+     public function getVO()
+     {
+       tripVO._carrier = carrier.selectedItem.data;
+       return( tripVO );
+     }
+
+     public function setVO( new_trip )
+     {
+       tripVO = new_trip;
+       
+       var tmp:Array = new Array();
+       for( var i=0; i < tripVO._carrierList.length; i++ ) {
+         tmp.push( { label:tripVO._carrierList.getItemAt(i), data:tripVO._carrierList.getItemAt(i) } );
+       }
+       carrier.setDataProvider( tmp );
+       
+       tripVO._carrierList = tmp;
+       
+       syncInputs();
+     }
+
+     function validateForm( validator, value )
+     {
+       /*
+       Validator.isValid( this, 'trip.tofax' );
+       */
+       if( validator.hasErrors() )
+         return;
+     }
+
+     public function getAgents_Result( result )
+     {
+       var tmp:Array = new Array();
+       tmp.push( {data: "", label: "" } );
+       for( var i=0; i< result.length; i++ )
+       {
+         tmp.push( {data: result.getItemAt(i).name, label: result.getItemAt(i).name } );
+       }
+       carrier.dataProvider = tmp;
+       carrier.selectedIndex = findIndex( carrier, tripVO._carrier );
+     }
+     
+     function getVars() : LoadVars
+     {
+       var vars:LoadVars = new LoadVars();
+       var tripVO:TripVO = getVO();
+       
+       vars.carrier = tripVO._carrier;
+       vars.prior = tripVO._prior;
+       vars.lot_number = tripVO._lot_number;
+       vars.color = tripVO._color;
+       vars.start_number = tripVO._start_number;
+       vars.end_number = tripVO._end_number;
+       vars.driver_name = tripVO._driver_name;
+       vars.helper_name = tripVO._helper_name;
+       vars.delivery_date = tripVO._delivery_date;
+       vars.date_approved = tripVO._approve_date;
+       vars.approved_by = tripVO._approve_by;
+
+       return( vars );
+     }
+					 
+     ]]>
+     
+   </mx:Script>
+
+   <mx:Model id="trip_dp">
+     <lot_number></lot_number>
+     <color></color>
+     <start_number></start_number>
+     <end_number></end_number>
+     <driver_name></driver_name>
+     <helper_name></helper_name>
+     <approve_by></approve_by>
+     <prior></prior>
+   </mx:Model>
+   
+   <mx:Model id="trip_model">
+     <lot_number>{ lot_number.text }</lot_number>
+     <color>{ color.text }</color>
+     <start_number>{ start_number.text }</start_number>
+     <end_number>{ end_number.text }</end_number>
+     <driver_name>{ driver_name.text }</driver_name>
+     <helper_name>{ helper_name.text }</helper_name>
+     <delivery_date>{ delivery_date.text }</delivery_date>
+     <approve_date>{ date_approved.text }</approve_date>
+     <approve_by>{ approved_by.text }</approve_by>
+     <prior>{ prior.text }</prior>
+     <carrier>{ carrier.text }</carrier>
+   </mx:Model>
+
+   <mx:Binding source="trip_model.lot_number"    destination="tripVO._lot_number"/>
+   <mx:Binding source="trip_model.color"         destination="tripVO._color"/>
+   <mx:Binding source="trip_model.start_number"  destination="tripVO._start_number"/>
+   <mx:Binding source="trip_model.end_number"    destination="tripVO._end_number"/>
+   <mx:Binding source="trip_model.driver_name"   destination="tripVO._driver_name"/>
+   <mx:Binding source="trip_model.helper_name"   destination="tripVO._helper_name"/>
+   <mx:Binding source="trip_model.delivery_date" destination="tripVO._delivery_date"/>
+   <mx:Binding source="trip_model.approve_date"  destination="tripVO._approve_date"/>
+   <mx:Binding source="trip_model.approve_by"    destination="tripVO._approve_by"/>
+   <mx:Binding source="trip_model.prior"         destination="tripVO._prior"/>
+
+   <mx:RemoteObject id="getAgents" source="com.movers.session.Utility"
+   	result="getAgents_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+     <mx:method name="getAgents" />
+   </mx:RemoteObject>
+		   
+
+   <mx:DateFormatter id="dateFormatter" formatString="MM-DD-YYYY" />
+   
+   <mx:Spacer height="40" />
+   
+   <mx:HBox backgroundColor="#F7F7F7" width="100%" horizontalAlign="center">
+   
+   <mx:Canvas> 
+     
+     <mx:Form>
+     
+       <mx:FormItem label="Carrier">
+         <mx:ComboBox id="carrier" width="160" dataProvider="{ tripVO._carrierList }" />
+       </mx:FormItem>
+       
+       <mx:FormItem label="Prior">
+         <mx:TextInput id="prior" text="{ trip_dp.prior }" />
+       </mx:FormItem>
+       
+       <mx:FormItem label="Lot Number">
+         <mx:TextInput id="lot_number" text="{ trip_dp.lot_number }" />
+       </mx:FormItem>
+       
+       <mx:FormItem label="Color">
+         <mx:TextInput id="color" text="{ trip_dp.color }" />
+       </mx:FormItem>
+       
+       <mx:FormItem label="Start Number">
+         <mx:TextInput id="start_number" text="{ trip_dp.start_number }" />
+       </mx:FormItem>
+       
+       <mx:FormItem label="End Number">
+         <mx:TextInput id="end_number" text="{ trip_dp.end_number }" />
+       </mx:FormItem>
+       
+     </mx:Form>
+     
+   </mx:Canvas>
+
+   <mx:Canvas>
+   
+     <mx:Form>   
+       <mx:FormItem>
+         <mx:TextInput id="fill" visible="false"/>
+       </mx:FormItem>
+       
+       <mx:FormItem label="Driver Name">
+         <mx:TextInput id="driver_name" text="{ trip_dp.driver_name}" />
+       </mx:FormItem>
+       
+       <mx:FormItem label="Helper Name">
+         <mx:TextInput id="helper_name" text="{ trip_dp.helper_name }" />
+       </mx:FormItem>
+       
+       <mx:FormItem label="Delivery Date">
+         <mx:DateField id="delivery_date" dateFormatter="formatDate" />
+       </mx:FormItem>
+       
+       <mx:FormItem label="Date Approved">
+         <mx:DateField id="date_approved" dateFormatter="formatDate" load="syncInputs();" />
+       </mx:FormItem>
+
+       <mx:FormItem label="Approved By">
+         <mx:TextInput id="approved_by" text="{ trip_dp.approve_by }" />
+       </mx:FormItem>
+     </mx:Form>
+     
+   </mx:Canvas>
+   <mx:Spacer width="45" />
+   </mx:HBox>
+   
+</mx:VBox>

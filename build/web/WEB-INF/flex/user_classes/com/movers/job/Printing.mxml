@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:VBox width="100%" height="100%" horizontalAlign="center" 
+	xmlns:mx="http://www.macromedia.com/2003/mxml">   
+	
+  <mx:Script>
+  <![CDATA[
+    [Event("PrintEvent")]
+    
+    public function do_print()
+    {
+      dispatchEvent( { type: "PrintEvent", form: joblist.selectedItem.data } ); 
+    }
+  ]]>
+  </mx:Script>
+  
+  <mx:Model id="prints" source="prints.xml"/>
+  
+  <mx:Spacer height="40" />
+  
+  <mx:HBox width="100%" horizontalAlign="center" backgroundColor="#f7f7f7">
+    <mx:VBox horizontalAlign="center">
+    <mx:Spacer height="10" />
+      <mx:List id="joblist" dataProvider="{ prints.type }" />
+      <mx:Button label="Print" click="do_print();" />
+    <mx:Spacer height="10" />
+    </mx:VBox>
+  </mx:HBox>
+
+</mx:VBox>

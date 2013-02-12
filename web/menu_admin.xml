@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menuitem label="menu_admin">
+  <menuitem label="Estimate" id="estimate_menu">
+    <menuitem label="New Estimate"  data="new_estimate" />
+    <menuitem label="Find Estimate" data="find_estimate"/>
+  </menuitem>
+  
+  <menuitem label="Dispatch" >
+    <menuitem label="Job Schedule" data="job_schedule" />
+  </menuitem>
+  
+  <menuitem label="Reports">
+    <menuitem label="Daily Estimates" data="daily_estimates" />
+    <menuitem label="Daily by Salesman" data="daily_estimates_by_salesman" />
+    <menuitem label="Daily Income" data="daily_income" />
+    <menuitem label="Open Contracts" data="open_contracts" />
+    <menuitem label="Cancelled Jobs" data="cancelled_jobs" />
+  </menuitem>
+</menuitem>

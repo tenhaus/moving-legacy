@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<payments>
+    <payment label="" data="" />
+    <payment label="Cash" data="Cash" />
+    <payment label="Check" data="Check" />
+    <payment label="Credit Card" data="Credit Card" />    
+</payments>

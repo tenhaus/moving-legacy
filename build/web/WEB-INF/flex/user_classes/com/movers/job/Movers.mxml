@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:VBox width="100%" height="100%" horizontalAlign="center" xmlns:mx="http://www.macromedia.com/2003/mxml" load="initVO();" creationPolicy="all">
+  
+  <mx:Script>
+  <![CDATA[
+  import com.movers.VO.*;
+  import com.movers.Utility;
+  
+  var popup;
+  var moversVO:MoversVO;
+  
+  var doubleClickTime:Number=200;
+  var lastClicked;
+  var lastIndex;
+  var date;
+  
+  public function reset()
+  {
+    moversVO = new MoversVO();
+    moversVO._moversList = new Array();
+    
+    employee.selectedIndex   = 0;
+    employee.validationSucceeded();
+    
+    movertype.selectedIndex  = 0;
+    movertype.text           = "";
+    movertype.validationSucceeded();
+    
+    jobdate.selectedDate     = null;
+    jobdate.validationSucceeded();
+    
+    hours.text               = "0.00";    
+    hours.validationSucceeded();
+    
+    rate.text                = "$0.00";
+    rate.validationSucceeded();
+    
+    comm.text                = "$0.00";
+    comm.validationSucceeded();
+        
+    other.text               = "$0.00";
+    other.validationSucceeded();
+    
+    tip.text                 = "$0.00";
+    tip.validationSucceeded();
+    
+    deduct.text              = "$0.00";
+    deduct.validationSucceeded();					
+  }
+  
+  function initVO()
+  {
+     moversVO = new MoversVO();
+     moversVO._moversList = new Array();
+  }
+
+  public function setVO( new_movers )
+  {
+    moversVO = new_movers;
+    
+    var tmp:Array = new Array();
+    
+    for( var i=0; i<moversVO._movers.length; i++ ) {
+      tmp.push( { label:moversVO._movers.getItemAt(i), data:moversVO._movers.getItemAt(i) } );
+    }
+    employee.setDataProvider( tmp );
+    employee.selectedIndex = 0;
+    moversVO._movers = tmp;
+    
+    moversVO._moversList = mx.utils.ArrayUtil.toArray( new_movers._moversList );
+    
+    for( var i=0; i< moversVO._moversList.length; i++ )
+    {
+      var rec = moversVO._moversList.getItemAt(i);
+      
+      rec.rate = formatVOCurrency( rec.rate );
+      rec.comm = formatVOCurrency( rec.comm );
+      rec.other = formatVOCurrency( rec.other );
+      rec.tip = formatVOCurrency( rec.tip );
+      rec.deduct = formatVOCurrency( rec.deduct );
+      rec.total = formatVOCurrency( rec.total );
+      
+      var d:Date = mx.formatters.DateFormatter.parseDateString( rec.date );
+      rec.date = formatDate( d );		  
+      
+      moversVO._moversList.replaceItemAt( i, rec );
+    }
+  }
+		
+  function showWindow(modal) {
+    var rec = dgrid.getItemAt(dgrid.selectedIndex);
+    
+    popup = mx.managers.PopUpManager.createPopUp( _root, com.movers.job.MoverEditor, modal, {deferred: true} );    
+    var delegate = mx.utils.Delegate.create( this, edit_result );
+    popup.addEventListener( "OkEvent", delegate );
+    popup.addEventListener( "DeleteEvent", delegate );
+    popup.addEventListener( "CancelEvent", delegate );
+    
+    popup.moversVO = moversVO;
+
+    var util:Utility = new Utility();
+
+    popup.employee.selectedIndex   = util.findIndex( popup.employee, rec.employee );
+    popup.movertype.selectedIndex  = util.findMoversIndex( popup.movertype, rec.type );
+    popup.jobdate.selectedDate     = mx.formatters.DateFormatter.parseDateString( rec.date );
+    popup.hours.text               = rec.hours;
+    popup.rate.text                = formatVOCurrency( rec.rate );
+    popup.comm.text                = formatVOCurrency( rec.comm );
+    popup.other.text               = formatVOCurrency( rec.other );
+    popup.tip.text                 = formatVOCurrency( rec.tip );
+    popup.deduct.text              = formatVOCurrency( rec.deduct );
+					
+    popup.centerPopUp();
+  }
+
+  public function edit_result( event )
+  {
+    if( event.type == "DeleteEvent" )
+    {      
+      dgrid.dataProvider.removeItemAt( dgrid.selectedIndex );
+    }
+    if( event.type == "OkEvent" )
+    {
+      var rec = dgrid.dataProvider.getItemAt( dgrid.selectedIndex );
+      
+      var _total  :Number = 0;
+      var _hours  :Number = stripFormatting(event.target.hours.text);
+      var _rate   :Number = stripFormatting(event.target.rate.text);
+      var _comm   :Number = stripFormatting(event.target.comm.text);
+      var _other  :Number = stripFormatting(event.target.other.text);
+      var _tip    :Number = stripFormatting(event.target.tip.text);
+      var _deduct :Number = stripFormatting(event.target.deduct.text);
+      
+      _total = ( _hours * _rate ) + _comm + _other + _tip - _deduct;
+      
+      
+      rec.employee  = event.target.employee.selectedItem.data;
+      rec.type      = event.target.movertype.selectedItem.data;
+      rec.date      = event.target.jobdate.text;
+      rec.hours     = event.target.hours.text;
+      rec.rate      = event.target.rate.text;
+      rec.comm      = event.target.comm.text;
+      rec.other     = event.target.other.text;
+      rec.tip       = event.target.tip.text;
+      rec.deduct    = event.target.deduct.text; 
+      rec.total     = formatVOCurrency(_total);
+      
+      dgrid.dataProvider.replaceItemAt( dgrid.selectedIndex, rec );
+    }
+    event.target.deletePopUp();
+  }
+  
+  function editItem( event ) {
+    var dt=new Date();
+    var ms=dt.getTime();
+    var last=lastClicked;
+    lastClicked=ms;
+    if( dgrid.selectedIndex != lastIndex )
+    {
+      lastIndex = dgrid.selectedIndex;
+      return;
+    }
+    if (last==undefined || (ms-last)>doubleClickTime) {
+      return;
+    }
+    lastClicked=0;
+    showWindow(true);
+  }
+
+  public function stripFormatting( num:String ) : Number
+  {
+    if( num == null )
+    {
+      return(0);
+    }
+    var result:String = "";
+    for( var i=0; i<num.length; i++ )
+    {
+      if( num.charAt(i) != '$' && num.charAt(i) != ',' )
+      {
+        result += num.charAt(i);
+      }
+    }
+    
+    if( Number(result) )
+    {
+      return( Number(result) );
+    }
+    else
+    {
+      return(0);
+    }
+  }
+													
+
+  function setDate( d:Date )
+  {
+    date = d;
+    jobdate.selectedDate = d;
+  }
+  
+  function addItem()
+  { 
+    if( employee.text.selectedItem.date == "" )
+    {
+      mx.controls.Alert.show( "Please choose a mover." );
+      return;
+    }
+    if( jobdate.selectedDate == null )
+    {
+      mx.controls.Alert.show( "Please enter a date." );
+      return;
+    }
+    if( movertype.selectedItem.data == "" )
+    {
+      mx.controls.Alert.show( "Please enter the mover position." );
+      return;
+    }
+    
+    var _total  :Number = 0;
+    var _hours  :Number = stripFormatting(hours.text);
+    var _rate   :Number = stripFormatting(rate.text);
+    var _comm   :Number = stripFormatting(comm.text);
+    var _other  :Number = stripFormatting(other.text);
+    var _tip    :Number = stripFormatting(tip.text);
+    var _deduct :Number = stripFormatting(deduct.text);
+    
+    _total = ( _hours * _rate ) + _comm + _other + _tip - _deduct;
+    dgrid.dataProvider.addItem( {employee:employee.selectedItem.data, type:movertype.selectedItem.data, date:jobdate.text,
+    				 hours:hours.text,rate:rate.text,
+    				 comm:comm.text,other:other.text,
+				 tip:tip.text,deduct:deduct.text, total:formatVOCurrency(_total) } );
+    
+    employee.selectedIndex   = 0;
+    movertype.selectedIndex  = 0;
+    jobdate.selectedDate     = date;
+    hours.text               = "0.00";
+    rate.text                = "$0.00";
+    comm.text                = "$0.00";
+    other.text               = "$0.00";
+    tip.text                 = "$0.00";
+    deduct.text              = "$0.00";
+
+    
+    Selection.setFocus(employee);
+  }
+
+  function formatCurrency( item )
+  {
+    var res:String = USDformatter.format( item.text );
+  
+    if( res != "" ) {
+      item.text = res;
+    }
+    else
+    {
+      item.text = "$0.00";
+    }
+  }
+
+  function formatVOCurrency( text )
+  {
+    var res:String = USDformatter.format( text );
+    
+    if( res != "" ) {
+      return(res);
+    }
+    else
+    {
+       return( "$0.00" );
+    }
+  }
+					    
+  
+  function formatNumber( item )
+  {
+    var res:String = numberFormatter.format( item.text );
+    if( res != "" ) {
+      item.text = res;
+    }
+    else
+    {
+      item.text = "0";
+    }
+  }
+  
+  public function formatDate( date:Date ):String
+  {
+    return dateFormatter.format( date );
+  }
+  
+  public function getMovers_Result( result )
+  {
+    var tmp:Array = new Array();
+    //tmp.push( {data: "", label: "" } );
+    
+    for( var i=0; i< result.length; i++ )
+    {
+      tmp.push( {data: result.getItemAt(i).name, label: result.getItemAt(i).name } );
+    }    
+    employee.dataProvider = tmp;
+  }
+
+  public function getMoverInfo()
+  {
+    mover_info.getMoverInfo( employee.selectedItem.data, moversVO._company_id );
+  }
+
+  public function getMoverInfo_Result( result )
+  {
+    var rec = result.getItemAt(0);
+    
+    if( movertype.selectedItem.data == "F" ) {
+      rate.text = formatVOCurrency( rec.rate_f );
+    }
+    if( movertype.selectedItem.data == "H" ) {
+      rate.text = formatVOCurrency( rec.rate_h );
+    }
+    if( movertype.selectedItem.data == "D" ) {
+      rate.text = formatVOCurrency( rec.rate_d );
+    }
+    if( movertype.selectedItem.data == "S" ) {
+      rate.text = formatVOCurrency( rec.rate_s );
+    }
+  }
+  
+  function getVars() : LoadVars
+  {
+    var vars:LoadVars = new LoadVars();
+    
+    vars.employee = "";
+    vars.type = "";
+    vars.date = "";
+    vars.hours = "";
+    vars.rate = "";
+    vars.comm = "";
+    vars.other = "";
+    vars.tip = "";
+    vars.deduct = "";
+
+    for( var i=0; i< dgrid.dataProvider.length; i++ )
+    {
+      var rec = dgrid.getItemAt(i);
+      
+      vars.employee += rec.employee + "\n";
+      vars.type += rec.type + "\n";
+      vars.date += rec.date + "\n";
+      vars.hours += rec.hours + "\n";
+      vars.rate += rec.rate + "\n";
+      vars.comm += rec.comm + "\n";
+      vars.other += rec.other + "\n";
+      vars.tip += rec.tip + "\n";
+      vars.deduct += rec.deduct + "\n";
+    }
+    
+    return( vars );
+  }
+  
+  ]]>
+  </mx:Script>
+  
+  <mx:Model id="inputs">
+    <item>{ jobdate.text }</item>
+    <quantity>{ jobdate.text  }</quantity>
+    <price>{ jobdate.text }</price>
+  </mx:Model>
+
+  <mx:Model id="mover_types" source="movers.xml" />
+  
+  <mx:StringValidator   field="inputs.item" required="false" maxLength="50" tooLongError="Item name can be no longer than 50 characters."/>
+  <mx:NumberValidator   field="inputs.quantity" />
+  <mx:CurrencyValidator field="inputs.price" />
+  
+  <mx:DateFormatter id="dateFormatter" formatString="MM-DD-YYYY" />
+  <mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+  	decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left"/> 
+  <mx:NumberFormatter precision="2" id="numberFormatter" useThousandsSeparator="false"/> 
+
+  <mx:RemoteObject id="getMovers" source="com.movers.session.Utility"
+  	result="getMovers_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+    <mx:method name="getMovers" />
+  </mx:RemoteObject>
+
+  <mx:RemoteObject id="mover_info" source="com.movers.session.Utility"
+  	result="getMoverInfo_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+    <mx:method name="getMoverInfo" />
+  </mx:RemoteObject>
+		  
+		  
+  <mx:Spacer height="20" />
+  
+  <mx:Label text="* To edit a mover double click that mover in the list below." />
+  
+  <mx:DataGrid width="90%" id="dgrid" height="50%" change="editItem(event);" dataProvider="{moversVO._moversList}">
+  <mx:columns>
+    <mx:Array>
+      <mx:DataGridColumn columnName="employee" width="170" />
+      <mx:DataGridColumn columnName="type" width="50" />
+      <mx:DataGridColumn columnName="date" width="100" />
+      <mx:DataGridColumn columnName="hours" width="50" />
+      <mx:DataGridColumn columnName="rate" />
+      <mx:DataGridColumn columnName="comm" />
+      <mx:DataGridColumn columnName="other" />
+      <mx:DataGridColumn columnName="tip" />
+      <mx:DataGridColumn columnName="deduct" />
+      <mx:DataGridColumn columnName="total" />
+      
+    </mx:Array>
+  </mx:columns>
+  </mx:DataGrid>
+  
+
+  <mx:Spacer height="5" />
+  
+  <mx:HBox backgroundColor="#F7F7F7" height="140" width="100%" horizontalAlign="center" borderColor="#CCCCCC">
+    <mx:Form>
+    
+      
+      <mx:FormItem label="Employee" required="true">
+        <mx:ComboBox id="employee" width="170" dataProvider="{ moversVO._movers }" change="getMoverInfo()" />
+      </mx:FormItem>
+      
+      <mx:FormItem label="Type" required="true">
+        <mx:ComboBox id="movertype" dataProvider="{ mover_types.mover_type }" change="getMoverInfo()" />
+      </mx:FormItem>
+     
+     <mx:FormItem label="Date" required="true">
+        <mx:DateField id="jobdate" dateFormatter="formatDate" load="jobdate.selectedDate = this.date" />
+      </mx:FormItem>
+      
+    </mx:Form>
+    
+    <mx:Form>
+    
+      <mx:FormItem label="Hours" required="true">
+        <mx:TextInput id="hours" text="0" width="80" enter="formatNumber(hours); addItem();" focusOut="formatNumber(hours);" />
+      </mx:FormItem>
+      
+      <mx:FormItem label="Rate" required="true">
+        <mx:TextInput id="rate" text="$0.00" width="80" enter="formatCurrency(rate); addItem();" focusOut="formatCurrency(rate);"/>
+      </mx:FormItem>
+      
+      <mx:FormItem label="Commision">
+        <mx:TextInput id="comm" text="$0.00" width="80" enter="formatCurrency(comm); addItem();" focusOut="formatCurrency(comm);"/>
+      </mx:FormItem>
+      
+    </mx:Form>
+    
+    <mx:Form>
+    
+      <mx:FormItem label="Other">
+        <mx:TextInput id="other" text="$0.00" width="80" enter="formatCurrency(other); addItem();" focusOut="formatCurrency(other);"/>
+      </mx:FormItem>
+      
+      <mx:FormItem label="Tip">
+        <mx:TextInput id="tip" text="$0.00" width="80" enter="formatCurrency(tip); addItem();" focusOut="formatCurrency(tip);"/>
+      </mx:FormItem>
+      
+      <mx:FormItem label="Deductions">
+        <mx:TextInput id="deduct" text="$0.00" width="80" enter="formatCurrency(deduct); addItem();" focusOut="formatCurrency(deduct);"/>
+      </mx:FormItem>
+      
+    </mx:Form>
+    
+    <mx:Form>
+      <mx:FormItem>
+        <mx:Button label="Add Mover" click="addItem();" />
+      </mx:FormItem>
+    </mx:Form>
+    
+  </mx:HBox>
+  
+</mx:VBox>

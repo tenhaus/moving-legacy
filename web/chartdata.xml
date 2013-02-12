@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<data>
+
+    <state name="Alabama">
+        <apples>135</apples>
+        <oranges>113</oranges>
+        <strawberries>25</strawberries>
+        <bananas>12</bananas>
+    </state>
+
+    <state name="Alaska">
+        <apples>15</apples>
+        <oranges>85</oranges>
+        <strawberries>134</strawberries>
+        <bananas>93</bananas>
+    </state>
+
+    <state name="Alabama">
+        <apples>65</apples>
+        <oranges>2</oranges>
+        <strawberries>71</strawberries>
+        <bananas>133</bananas>
+    </state>
+
+    <state name="Arizona">
+        <apples>51</apples>
+        <oranges>110</oranges>
+        <strawberries>143</strawberries>
+        <bananas>101</bananas>
+    </state>
+
+    <state name="Arkansas">
+        <apples>92</apples>
+        <oranges>133</oranges>
+        <strawberries>48</strawberries>
+        <bananas>105</bananas>
+    </state>
+
+    <state name="Alabama">
+        <apples>64</apples>
+        <oranges>94</oranges>
+        <strawberries>30</strawberries>
+        <bananas>79</bananas>
+    </state>
+
+    <state name="California">
+        <apples>124</apples>
+        <oranges>1</oranges>
+        <strawberries>73</strawberries>
+        <bananas>66</bananas>
+    </state>
+
+    <state name="Colorado">
+        <apples>143</apples>
+        <oranges>64</oranges>
+        <strawberries>125</strawberries>
+        <bananas>41</bananas>
+    </state>
+
+</data>

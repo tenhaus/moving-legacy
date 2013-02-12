@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow title="Owner Balance Details." xmlns:mx="http://www.macromedia.com/2003/mxml" xmlns:movers="*" 
+	horizontalAlign="center" verticalAlign="middle">
+
+
+<mx:Script>
+<![CDATA[
+
+  [Event("OkEvent")]
+
+  public function closeWindow() 
+  {
+    dispatchEvent( { type: "OkEvent" } );
+  }
+
+]]>
+</mx:Script>
+  <mx:HBox borderStyle="solid" width="100%" horizontalAlign="center"
+        marginLeft="20" marginRight="20" marginTop="10" marginBottom="10"
+        cornerRadius="5">
+
+  <mx:VBox>
+    <mx:Form>
+    <mx:FormItem label="Total:">
+      <mx:Label id="total_label" text="$0.00" />
+    </mx:FormItem>
+    <mx:FormItem label="Materials:">
+      <mx:Label id="materials_label" text="$0.00" />
+    </mx:FormItem>
+    <mx:FormItem label="Estimated:">
+      <mx:Label id="estimated_label" text="$0.00" />
+    </mx:FormItem>
+    <mx:FormItem label="Commission:">
+      <mx:Label color="#CC0000" id="commission_label" text="$0.00" />
+    </mx:FormItem>
+    <mx:FormItem label="Labor:">
+      <mx:Label color="#CC0000" id="labor_label" text="$0.00" />
+    </mx:FormItem>
+    <mx:FormItem label="Royalties:">
+      <mx:Label color="#CC0000" id="royalties_label" text="$0.00" />
+    </mx:FormItem>
+    </mx:Form>
+  </mx:VBox>
+  
+  <mx:VBox>
+    <mx:Form>
+    <mx:FormItem label="Insurance:">
+      <mx:Label color="#CC0000" id="insurance_label" text="$0.00" />
+    </mx:FormItem>
+    <mx:FormItem label="Truck:">
+      <mx:Label color="#CC0000" id="truck_label" text="$0.00" />
+    </mx:FormItem>
+    <mx:FormItem label="Material:">
+      <mx:Label color="#CC0000" id="material_charge_label" text="$0.00" />
+    </mx:FormItem>
+    <mx:FormItem label="Monthly Fee:">
+      <mx:Label color="#CC0000" id="monthly_fee_label" text="$0.00" />
+    </mx:FormItem>
+    <mx:FormItem label="Processing:">
+      <mx:Label color="#CC0000" id="processing_label" text="$0.00" />
+    </mx:FormItem>
+    <mx:FormItem label="Other:">
+      <mx:Label color="#CC0000" id="other_label" text="$0.00" />
+    </mx:FormItem>
+    </mx:Form>
+  </mx:VBox>
+
+</mx:HBox>
+
+  <mx:ControlBar horizontalAlign="right">
+    <mx:Button label="Ok" click="closeWindow()" />
+  </mx:ControlBar>
+  
+</mx:TitleWindow>

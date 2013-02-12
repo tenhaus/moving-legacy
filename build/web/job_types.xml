@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<types>
+  <type label="" data="" />
+  <type label="Local Commercial" data="Local Commercial" />
+  <type label="Local Moving" data="Local Moving" />
+  <type label="Long Distance" data="Long Distance" />
+  <type label="Packing" data="Packing" />
+  <type label="Sold to Carrier" data="Sold to Carrier" />
+  <type label="Storage" data="Storage" />
+  <type label="Storage In" data="Storage In" />
+  <type label="Storage Out" data="Storage Out" />
+</types>

@@ -1,0 +1,80 @@
+﻿<?xml version="1.0"?>
+
+ 
+
+<mx:Application xmlns:mx="http://www.macromedia.com/2003/mxml" pageTitle="Print Error" xmlns="*" clipContent="false">
+
+<mx:Script>
+
+<![CDATA[
+
+ 
+
+function doPrint():Void
+
+{
+
+ 
+
+            var p:PrintJob = new PrintJob;
+
+            var printConfirmed:Boolean = p.start();
+
+            if (printConfirmed) {
+
+            //xMin:topLeft, xMax:topRight, yMin:bottomLeft, yMax:bottomRight}
+
+            // If only want to print the Panel, then change dance_mc to  printBox 
+
+                        p.addPage("dance_mc",{xMin:-100,xMax:400,yMin:-150,yMax:560});
+
+                        p.send();
+
+            }
+
+            delete p; 
+
+            
+
+}
+
+ 
+
+]]>
+
+</mx:Script>
+
+ 
+
+ 
+
+ 
+
+<mx:VBox id="dance_mc" >
+
+<!-- Put all the components need to be printed in one ocntainer -->
+
+<mx:Button label="Print" click="doPrint();"/>
+
+<!-- <mx:Box backgroundColor="white" height="900" horizontalAlign="center" id="printBox" width="575" > -->
+
+<mx:Panel  height="400" horizontalAlign="center" id="printBox" width="300" clipContent="false" >
+
+            <mx:Text width="200" text=" test 1"/>
+
+            <mx:Text width="200" text="test 2"/>
+
+            <mx:Text width="200" text="test 3"/>
+
+            <mx:Text width="200" text="text 4"/>
+
+            
+
+</mx:Panel>
+
+</mx:VBox>
+
+ 
+
+</mx:Application>
+

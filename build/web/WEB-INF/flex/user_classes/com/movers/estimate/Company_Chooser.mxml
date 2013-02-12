@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow title="Please choose a company." xmlns:mx="http://www.macromedia.com/2003/mxml" xmlns:movers="*" 
+	width="100%" height="100%" horizontalAlign="center" verticalAlign="middle">
+	
+  <mx:Script>
+    <![CDATA[
+      [Event( "SubmitEvent")]
+
+      public function submit()
+      {
+        if( company.selectedItem.label != "" ) {	
+          dispatchEvent( { type: "SubmitEvent", company: company.selectedItem.label, company_id: company.selectedItem.data } );
+	}
+      }
+     
+    ]]>
+  </mx:Script>
+      
+  <mx:Model id="companies" source="companies_no_all.xml" />
+
+  <mx:Form verticalGap="8">
+	<mx:FormItem label="Company" required="true">
+	  <mx:ComboBox id="company" dataProvider="{ companies.company }" />
+	</mx:FormItem>
+
+	<mx:FormItem horizontalAlign="right" width="100%">
+	  <mx:Button label="OK" click="submit();" />
+	</mx:FormItem>	
+  </mx:Form>
+
+  <mx:ControlBar visible="false" height="0" />
+  
+</mx:TitleWindow>

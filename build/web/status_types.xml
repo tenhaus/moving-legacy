@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<types>
+  <type label="" data="" />
+  <type label="Booked" data="Booked" />
+  <type label="Cancelled" data="Cancelled" />
+  <type label="Closed" data="Closed" />
+  <type label="Estimate" data="Estimate" />
+</types>

@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Panel width="100%" height="100%" xmlns:mx="http://www.macromedia.com/2003/mxml" title="Edit Job" load="initEstimate()">
+
+<mx:Script>
+<![CDATA[
+
+import com.movers.VO.*;
+import com.movers.Utility;
+
+[Event("SubmitEvent")]
+var open_jobVO:Open_JobVO;
+var contactLoaded:Boolean;
+var addContactLoaded:Boolean;
+var commentsLoaded:Boolean;
+var inventoryLoaded:Boolean;
+var materialsLoaded:Boolean;
+var summaryLoaded:Boolean;
+var paymentLoaded:Boolean;
+var moversLoaded:Boolean;
+var tripLoaded:Boolean;
+
+public function initEstimate()
+{
+  contactLoaded = false;
+  addContactLoaded = false;
+  commentsLoaded = false;
+  inventoryLoaded = false;
+  materialsLoaded = false;
+  summaryLoaded = false;
+  paymentLoaded = false;
+  moversLoaded = false;
+  tripLoaded = false;
+  open_jobVO = new Open_JobVO();
+}
+
+public function cancel()
+{
+  dispatchEvent( { type: "SubmitEvent" } );
+}
+
+public function syncVO()
+{
+  open_jobVO.contactVO = contact.getContactVO();
+  open_jobVO.jobVO     = contact.getJobVO();
+
+  open_jobVO.additional_contactVO = additional_contact.additional_contactVO;
+  open_jobVO.commentVO = comments.commentVO;
+  
+  open_jobVO.local_summaryVO = summary.local_summaryVO;
+  open_jobVO.ld_summaryVO = summary.ld_summaryVO;
+  open_jobVO.summary_informationVO = summary.summary_informationVO;
+  
+  open_jobVO.materialsVO = materials.materialsVO;
+  open_jobVO.inventoryVO = inventory.inventoryVO;
+  open_jobVO.paymentVO   = payment.paymentVO;
+  open_jobVO.moversVO    = movers.moversVO;
+  open_jobVO.tripVO      = trip.getVO();			  
+
+  return( open_jobVO );
+}
+
+public function closeJob()
+{
+  var total :Number = Number( open_jobVO.summary_informationVO._total );
+  var paid  :Number = Number( open_jobVO.paymentVO.getTotalPaid() );
+  if( numFormatter.format(total) - numFormatter.format(paid) ) {
+    mx.controls.Alert.show( "Cannot close a job with a balance.", "Error" );
+    return;
+  }
+  if( ! comments.isValid() )
+  {
+    mx.controls.Alert.show( "There are errors on the Comments page." );
+    return;
+  }
+  if( !contact.isValid() )
+  {
+    mx.controls.Alert.show( "There are errors on the Contact page." );
+    return;
+  }
+  syncVO();
+  
+  open_jobVO.jobVO._status = "Closed";
+  sessionUtil.updateJob( open_jobVO );				    
+}
+
+public function runTest() {
+  if( ! comments.isValid() )
+  {
+    mx.controls.Alert.show( "There are errors on the Comments page." );
+    return;
+  }
+  if( !contact.isValid() )
+  {
+    mx.controls.Alert.show( "There are errors on the Contact page." );
+    return;
+  }
+  syncVO();
+
+  open_jobVO.jobVO._status = "Booked";
+  sessionUtil.updateJob( open_jobVO );
+}
+
+public function submit_Result( result )
+{
+  if( result == null ) {
+    mx.controls.Alert.show( "There was an error updating the job.  Please call support.", "Error" );
+    return;
+  }
+  materials.reset();
+  inventory.reset();
+  payment.reset();
+  movers.reset();
+  trip.reset();
+
+  dispatchEvent( { type: "SubmitEvent" } );
+}
+
+public function reset()
+{
+  this.title = "Edit Job";
+  
+  materials.reset();
+  inventory.reset();
+  payment.reset();
+  movers.reset();
+  trip.reset();
+	    
+  /*
+  contact.reset();
+  additional_contact.reset();
+  summary.reset();
+  inventory.reset();
+  materials.reset();
+  comments.reset();
+  */
+  tabnav.selectedChild=contact;
+}
+
+public function load_Result( result )
+{
+  mx.managers.CursorManager.removeBusyCursor();
+  open_jobVO = result;
+  
+  var d:Date = mx.formatters.DateFormatter.parseDateString( open_jobVO.jobVO._taken_date );
+  var taken:String = formatDate( d );  
+  if( taken != "" ) {
+    taken = "Taken on " + taken + ".";
+  }
+  
+  var title:String = "Edit Job.  #" + open_jobVO.job_id + ".  "+ taken + "  Status: " + open_jobVO.jobVO._status + ".";
+
+  var total:Number = Number( open_jobVO.summary_informationVO._total );
+  var paid:Number = open_jobVO.paymentVO.getTotalPaid();
+  
+  //mx.controls.Alert.show( "total " + total + " paid " + paid );
+  //mx.controls.Alert.show( "total - paid is " + ( numFormatter.format(total) - numFormatter.format(paid) ) );
+  //mx.controls.Alert.show( "it is " + (1.01 - 1) );
+
+  title += "  Total: " + formatVOCurrency(total);
+  title += ".  Balance: " + formatVOCurrency(numFormatter.format(total) - numFormatter.format(paid)) + ".";
+  
+  this.title = title; 
+
+  if( open_jobVO.jobVO._status == 'Closed' ||  open_jobVO.jobVO._status == 'Cancelled' )
+  {
+     close_job_button.visible = false;
+     update_job_button.visible = false;
+  }
+  else {
+     close_job_button.visible = true;
+     update_job_button.visible = true;
+  }
+
+  if( open_jobVO.jobVO._status == 'Estimate' )
+  {
+    update_job_button.label   = "Book Job";
+    update_job_button.visible = true;
+    close_job_button.visible = false;
+  }
+  else {
+    update_job_button.label   = "Update Job";
+  }
+
+  if( contactLoaded ) {
+    contact.setVO( open_jobVO.jobVO, open_jobVO.contactVO );
+  }
+  if( addContactLoaded ) {
+    additional_contact.setVO( open_jobVO.additional_contactVO );
+  }
+  if( commentsLoaded ) {
+    comments.setVO( open_jobVO.commentVO );
+  }
+  if( inventoryLoaded ) {
+    inventory.setVO( open_jobVO.inventoryVO );
+  }
+  if( materialsLoaded ) {
+    materials.setVO( open_jobVO.materialsVO );
+  }
+  if( summaryLoaded ) {
+    summary.setVO( open_jobVO.local_summaryVO, open_jobVO.ld_summaryVO, open_jobVO.summary_informationVO );
+  }
+  if( paymentLoaded ) {
+    payment.setVO( open_jobVO.paymentVO );    
+  }
+  if( moversLoaded ) {
+    movers.setVO( open_jobVO.moversVO );
+    var d:Date = mx.formatters.DateFormatter.parseDateString( open_jobVO.jobVO._from_date );		
+    movers.setDate( d );
+  }
+  if( tripLoaded ) {
+    trip.setVO( open_jobVO.tripVO );
+  }
+}
+public function payment_changed( event )
+{
+  var d:Date = mx.formatters.DateFormatter.parseDateString( open_jobVO.jobVO._taken_date );
+  var taken:String = formatDate( d );
+  if( taken != "" ) {
+    taken = "Taken on " + taken + ".";
+  }
+	      
+  var title:String = "Edit Job.  #" + open_jobVO.job_id + ".  "+ taken + "  Status: " + open_jobVO.jobVO._status + ".";
+  
+  var total:Number = Number( open_jobVO.summary_informationVO._total );
+  title += "  Total: " + formatVOCurrency(total) + ".  Balance: " + formatVOCurrency(Number(total) - Number(event.paid) ) + ".";
+  this.title = title;	    
+}
+
+public function summary_changed( event )
+{
+  var d:Date = mx.formatters.DateFormatter.parseDateString( open_jobVO.jobVO._taken_date );
+  var taken:String = formatDate( d );
+  if( taken != "" ) {
+  taken = "Taken on " + taken + ".";
+  }
+  
+  var title:String = "Edit Job.  #" + open_jobVO.job_id + ".  "+ taken + "  Status: " + open_jobVO.jobVO._status + ".";
+  
+  var paid:Number = open_jobVO.paymentVO.getTotalPaid();
+  title += "  Total: " + formatVOCurrency(event.total) + ".  Balance: " + formatVOCurrency(event.total - paid) + ".";
+  
+  this.title = title;
+}
+
+public function materials_changed( event )
+{
+  summary.setMaterials( event.price );
+}
+
+public function inventory_changed( event )
+{
+  summary.setWeight( event.weight );
+  summary.setCuft( event.cuft );
+}
+    
+
+public function loadJob( job_id, company_id )
+{ 
+  mx.managers.CursorManager.setBusyCursor();
+  reset();
+  jobLoader.load( Number(job_id), Number(company_id) );
+}
+
+public function initContact()
+{
+  contactLoaded = true;
+  contact.setVO( open_jobVO.jobVO, open_jobVO.contactVO );
+}
+
+public function initAddContact()
+{
+  addContactLoaded = true;
+  additional_contact.setVO( open_jobVO.additional_contactVO );
+}
+
+public function initComments()
+{
+  commentsLoaded = true;
+  comments.setVO( open_jobVO.commentVO );
+}
+
+public function initInventory()
+{
+  inventoryLoaded = true;
+  inventory.setVO( open_jobVO.inventoryVO );
+
+  var delegate = mx.utils.Delegate.create( this, inventory_changed );
+  inventory.addEventListener( "InventoryChanged", delegate );
+      
+}
+public function initMaterials()
+{
+  materialsLoaded = true;
+  materials.setVO( open_jobVO.materialsVO );
+
+  var delegate = mx.utils.Delegate.create( this, materials_changed );
+  materials.addEventListener( "MaterialsChanged", delegate );
+      
+}
+public function initSummary()
+{
+  summaryLoaded = true;
+  summary.setVO( open_jobVO.local_summaryVO, open_jobVO.ld_summaryVO, open_jobVO.summary_informationVO );
+  
+  var delegate = mx.utils.Delegate.create( this, summary_changed );
+  summary.addEventListener( "SummaryChanged", delegate );
+      
+}
+
+public function initPayment()
+{
+  paymentLoaded = true;
+  payment.setVO( open_jobVO.paymentVO );
+
+  var delegate = mx.utils.Delegate.create( this, payment_changed );
+  payment.addEventListener( "PaymentChanged", delegate );
+}
+ 
+public function initMovers()
+{
+  moversLoaded = true;
+  movers.setVO( open_jobVO.moversVO );
+  
+  var d:Date = mx.formatters.DateFormatter.parseDateString( open_jobVO.jobVO._from_date );		
+  movers.setDate( d );
+}
+
+public function initTrip()
+{
+  tripLoaded = true;
+  trip.setVO( open_jobVO.tripVO );
+}
+
+public function initPrint()
+{ 
+  var delegate = mx.utils.Delegate.create( this, handle_print );
+  printing.addEventListener( "PrintEvent", delegate );
+}
+
+public function formatDate( date:Date ):String
+{  
+  return dateFormatter.format( date );
+}
+
+public function handle_print( event )
+{
+  var util:Utility = new Utility();
+  
+  if( event.form == "Hard Copy" ) {
+    var hardcopy = new LoadVars();
+    hardcopy = util.hardCopyParams( hardcopy, open_jobVO );
+    hardcopy.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );  
+    return;
+  }
+  if( event.form == "Order for Service" ){
+    var order = new LoadVars();
+    order = util.orderForServiceParams( order, open_jobVO );
+    order.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );  
+    return;
+  }
+  if( event.form == "Long Distance Contract" ){
+    var contract = new LoadVars();
+    contract = util.longContractParams( contract, open_jobVO );
+    contract.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );  
+    return;
+  }
+  if( event.form == "Local Contract" ){
+    var contract = new LoadVars();
+    contract = util.localContractParams( contract, open_jobVO );
+    contract.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );  
+    return;
+  }
+  if( event.form == "Invoice" ){
+    var invoice = new LoadVars();
+    invoice = util.invoiceParams( invoice, open_jobVO );
+    invoice.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );  
+    return;
+  }
+  if( event.form == "Closed Job Copy" ){
+    var closed = new LoadVars();
+    closed = util.closedJobParams( closed, open_jobVO );
+    closed.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );  
+    return;
+  }
+}
+
+function formatVOCurrency( text )
+{
+  var res:String = USDformatter.format( text );
+  
+  if( res != "" ) {
+    return(res);
+  }
+  else
+  {
+    return( "$0.00" );
+  }
+}
+
+function printJob()
+{
+  var vars:LoadVars = null;
+  
+  if( tabnav.selectedChild == contact )
+  {
+    var vars:LoadVars = contact.getVars();
+    vars.form = "job_forms/contact";
+  }
+  if( tabnav.selectedChild == additional_contact )
+  {
+    var vars:LoadVars = additional_contact.getVars();
+    vars.form = "job_forms/additional_contact";
+  }
+  if( tabnav.selectedChild == summary )
+  {
+    var vars:LoadVars = summary.getVars();
+    vars.form = "job_forms/summary";
+  }
+  if( tabnav.selectedChild == materials )
+  {
+    var vars:LoadVars = materials.getVars();
+    vars.form = "job_forms/materials";
+  }
+  if( tabnav.selectedChild == inventory )
+  {
+    var vars:LoadVars = inventory.getVars();
+    vars.form = "job_forms/inventory";
+  }
+  if( tabnav.selectedChild == comments )
+  {
+    var vars:LoadVars = comments.getVars();
+    vars.form = "job_forms/comments";
+  }
+  if( tabnav.selectedChild == payment )
+  {
+    var vars:LoadVars = payment.getVars();
+    vars.form = "job_forms/payments";
+  }
+  if( tabnav.selectedChild == movers )
+  {
+    var vars:LoadVars = movers.getVars();
+    vars.form = "job_forms/movers";
+  }
+  if( tabnav.selectedChild == trip )
+  {
+    var vars:LoadVars = trip.getVars();
+    vars.form = "job_forms/trip";
+  }
+
+  var jobVO:JobVO = contact.getJobVO();
+  
+  vars.job_number  = jobVO._job_id;
+  vars.booked_date = jobVO._taken_date;
+  vars.booked_by   = jobVO._booked_by;
+
+  if( vars != null ) {
+    vars.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );
+  }
+}
+					   
+]]>
+</mx:Script>
+
+  <mx:RemoteObject id="sessionUtil" source="com.movers.session.Utility" 
+        result="submit_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+    <mx:method name="updateJob" />
+  </mx:RemoteObject>
+  
+  <mx:RemoteObject id="jobLoader" source="com.movers.session.Utility"
+  	result="load_Result(event.result);" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+    <mx:method name="load" />
+  </mx:RemoteObject>
+		  
+  <mx:DateFormatter id="dateFormatter" formatString="MM-DD-YYYY" />
+  
+  <mx:NumberFormatter id="numFormatter" useThousandsSeparator="false" precision="2" />
+  
+  <mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+          decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left" />
+
+  <mx:TabNavigator id="tabnav" width="100%" height="100%">
+
+    <Contact label="Contact" id="contact" xmlns="com.movers.job.*" creationComplete="initContact();"/>
+
+    <Additional_Contact label="Additional Contact" id="additional_contact" xmlns="com.movers.job.*"  creationComplete="initAddContact();"/>
+
+    <Summary label="Summary" id="summary" xmlns="com.movers.job.*" creationComplete="initSummary();" />
+
+    <Materials label="Materials" id="materials" xmlns="com.movers.job.*" creationComplete="initMaterials();" />
+ 
+    <Inventory label="Inventory" id="inventory" xmlns="com.movers.job.*" creationComplete="initInventory();" />
+
+    <Comments label="Comments" id="comments" xmlns="com.movers.job.*" creationComplete="initComments();" />
+    
+    <Payment label="Payments" id="payment" xmlns="com.movers.job.*" creationComplete="initPayment();" />
+    
+    <Movers label="Movers" id="movers" xmlns="com.movers.job.*" creationComplete="initMovers();" />
+    
+    <Trip label="Trip" id="trip" xmlns="com.movers.job.*" creationComplete="initTrip();" />
+    
+    <Printing label="Printing" id="printing" xmlns="com.movers.job.*" creationComplete="initPrint();" />
+    
+    <Email label="Email" id="email" xmlns="com.movers.job.*" creationComplete="" />
+ 
+  </mx:TabNavigator>
+  
+  <mx:ControlBar horizontalAlign="right">
+    <mx:Button label="Cancel" click="cancel();" />
+    <mx:Button id="print_tab_button"  label="Print Current Page" click="printJob();" />
+    <mx:Spacer width="100%" />
+    <mx:Button id="close_job_button"  label="Close Out Job" click="closeJob();" />
+    <mx:Button id="update_job_button" label="Update Job" click="runTest();" />
+  </mx:ControlBar>
+
+</mx:Panel>

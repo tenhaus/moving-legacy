@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:VBox width="100%" height="100%" horizontalAlign="center" xmlns:mx="http://www.macromedia.com/2003/mxml" load="initVO();">
+  <mx:Script>
+  <![CDATA[
+  import com.movers.VO.*;
+
+  [Event("InventoryChanged")]
+  
+  var popup;
+  var inventoryVO:InventoryVO;
+
+  var doubleClickTime:Number=200;
+  var lastClicked;
+  var lastIndex;
+  
+  public function reset()
+  {
+    inventoryVO = new InventoryVO();  
+    inventoryVO._inventoryList = new Array();
+    
+    item.text            = "";
+    item.validationSucceeded();
+    
+    quantity.text        = "1";
+    quantity.validationSucceeded();
+    
+    cubic_feet.text      = "0";
+    cubic_feet.validationSucceeded();
+    
+    pack.selected        = false;
+    unpack.selected      = false;
+    
+    pack_quantity.text   = "0";
+    pack_quantity.validationSucceeded();
+    
+    unpack_quantity.text = "0";
+    unpack_quantity.validationSucceeded();
+
+    lbs.text             = "0";
+    lbs.validationSucceeded();
+  }
+
+  public function initVO()
+  {
+     inventoryVO = new InventoryVO();  
+     inventoryVO._inventoryList = new Array();
+  }
+
+  public function setVO( new_inventory )
+  {
+    inventoryVO = new_inventory;
+    inventoryVO._inventoryList = mx.utils.ArrayUtil.toArray( new_inventory._inventoryList );
+  }
+
+  function editItem( event ) {
+    var dt=new Date();
+    var ms=dt.getTime();
+    var last=lastClicked;
+    lastClicked=ms;
+    if( dgrid.selectedIndex != lastIndex )
+    {
+    lastIndex = dgrid.selectedIndex;
+    return;
+    }
+    if (last==undefined || (ms-last)>doubleClickTime) {
+    return;
+    }
+    lastClicked=0;
+    
+    showWindow(true);
+  }
+    
+    
+  function showWindow(modal) {
+  
+    var rec = dgrid.getItemAt(dgrid.selectedIndex);
+    
+    popup = mx.managers.PopUpManager.createPopUp( _root, com.movers.job.InventoryEditor, modal, {deferred: true} );
+    var delegate = mx.utils.Delegate.create( this, edit_result );
+    
+    popup.addEventListener( "OkEvent", delegate );
+    popup.addEventListener( "DeleteEvent", delegate );
+    popup.addEventListener( "CancelEvent", delegate );
+    popup.centerPopUp();
+    
+    popup.item.text = rec.item;
+    popup.quantity.text = rec.qty;
+    popup.cubic_feet.text = rec.cuft;
+    
+    if( rec.pack == "yes" ) {
+      popup.pack.selected = true;
+    }
+    else
+    {
+      popup.pack.selected = false;
+    }
+    if( rec.unpack == "yes" )
+    {
+      popup.unpack.selected = true;
+    }
+    else
+    {
+      popup.unpack.selected = false;
+    }
+    popup.unpack_quantity.text = rec.unpack_qty;
+    popup.pack_quantity.text = rec.pack_qty;
+    popup.lbs.text = rec.lbs;
+  }
+    
+  public function edit_result( event )
+  {
+    if( event.type == "DeleteEvent" )
+    {
+      dgrid.dataProvider.removeItemAt( dgrid.selectedIndex );
+    }
+    if( event.type == "OkEvent" )
+    {
+      var rec = dgrid.dataProvider.getItemAt( dgrid.selectedIndex );
+      
+      rec.item = popup.item.text;
+      rec.qty = popup.quantity.text;
+      
+      rec.cuft = popup.cubic_feet.text;
+      if( popup.pack.selected )
+      {
+        rec.pack = "yes";
+      }
+      else
+      {
+        rec.pack = "no";
+      }
+      if( popup.unpack.selected )
+      {
+        rec.unpack = "yes";
+      }
+      else
+      {
+        rec.unpack = "no";
+      }
+      rec.pack_qty = popup.pack_quantity.text;
+      rec.unpack_qty = popup.unpack_quantity.text;
+      rec.lbs = popup.lbs.text;
+      
+      dgrid.dataProvider.replaceItemAt( dgrid.selectedIndex, rec );
+    }
+    event.target.deletePopUp();
+    dispatchEvent( { type: "InventoryChanged", weight: inventoryVO.getTotalWeight(), cuft: inventoryVO.getTotalCuft() } );
+  }
+  
+  function addItem()
+  {
+    if( item.text == "" )
+    {
+      mx.controls.Alert.show( "Please enter an Item name" );
+      return;
+    }
+    var _pack;
+    var _unpack;
+
+    if( pack.selected )
+    {
+      _pack = "yes";
+    }
+    else
+    {
+      _pack = "no";
+    }
+    if( unpack.selected )
+    {
+      _unpack = "yes";
+    }
+    else
+    {
+      _unpack = "no";
+    }
+
+					
+    dgrid.dataProvider.addItem( {
+    		item       :item.text,
+		qty        : quantity.text,
+		cuft       : cubic_feet.text,
+		pack       : _pack,
+		unpack     : _unpack,
+		pack_qty   : pack_quantity.text,
+		unpack_qty : unpack_quantity.text,
+		lbs        : lbs.text } );
+		
+    item.text            = "";
+    quantity.text        = "1";
+    cubic_feet.text      = "0";
+    pack.selected        = false;
+    unpack.selected      = false;
+    pack_quantity.text   = "0";
+    unpack_quantity.text = "0";
+    lbs.text             = "0";
+
+    Selection.setFocus(item);
+    dispatchEvent( { type: "InventoryChanged", weight: inventoryVO.getTotalWeight(), cuft: inventoryVO.getTotalCuft() } );
+  }
+  
+  function formatNumber( item )
+  {
+    var res:String = numberFormatter.format( item.text );
+    if( res != "" ) {
+      item.text = res;
+    }
+    else
+    {
+      item.text = "0";
+    }
+  }
+
+  function updateLBS()
+  {
+    if( auto_calc_lbs.selected && Number(cubic_feet.text) )
+    {
+      var _cuft:Number = Number(cubic_feet.text);
+      lbs.text = _cuft * 7;
+    }
+  }
+  
+  function getVars() : LoadVars
+  {
+    var vars:LoadVars = new LoadVars();
+    
+    vars.item = "";
+    vars.quantity = "";
+    vars.cubic_feet = "";
+    vars.pack = "";
+    vars.unpack = "";
+    vars.pack_quantity = "";
+    vars.unpack_quantity = "";
+    vars.weight = "";
+
+    for( var i=0; i<dgrid.dataProvider.length; i++ )
+    {
+      var rec = dgrid.getItemAt(i);
+      vars.item += rec.item + "\n";
+      vars.quantity += rec.qty + "\n";
+      vars.cubic_feet += rec.cuft + "\n";
+      vars.pack += rec.pack + "\n";
+      vars.unpack += rec.unpack + "\n";
+      vars.pack_quantity += rec.pack_qty + "\n";
+      vars.unpack_quantity += rec.unpack_qty + "\n";
+      vars.weight += rec.lbs + "\n";
+    }
+
+    vars.total_weight = inventoryVO.getTotalWeight();
+    vars.total_cubic_feet = inventoryVO.getTotalCuft()
+
+    return( vars );
+  }
+  
+  ]]>
+  </mx:Script>
+  
+  <mx:NumberFormatter precision="0" id="numberFormatter" useThousandsSeparator="false"/>
+  
+  <mx:Spacer height="20" />
+  
+  <mx:Label text="* To edit an inventory article double click that article in the list below." />
+  
+  <mx:DataGrid width="90%" id="dgrid" height="50%" change="editItem(event);" dataProvider="{inventoryVO._inventoryList}">
+    <mx:columns>
+      <mx:Array>
+        <mx:DataGridColumn columnName="item" width="200" />
+	<mx:DataGridColumn columnName="qty" headerText="quantity" />
+	<mx:DataGridColumn columnName="cuft" headerText="cubic feet"/>
+	<mx:DataGridColumn columnName="pack" headerText="pack"/>
+	<mx:DataGridColumn columnName="unpack" headerText="unpack"/>
+	<mx:DataGridColumn columnName="pack_qty" headerText="# pack" />
+	<mx:DataGridColumn columnName="unpack_qty" headerText="# unpack" />
+	<mx:DataGridColumn columnName="lbs" headerText="weight" />
+      </mx:Array>
+    </mx:columns>
+  </mx:DataGrid>
+
+  <mx:Spacer height="5" />
+
+  <mx:HBox backgroundColor="#F7F7F7" borderThickness="2" width="100%" 
+  	horizontalAlign="center" borderColor="#CCCCCC" borderStyle="none" >
+
+    <mx:Form>
+      <mx:FormItem label="Item" required="true" >
+        <mx:TextInput width="200" id="item" enter="addItem();"/>
+      </mx:FormItem>
+      <mx:FormItem label="Quantity" required="true">
+        <mx:TextInput width="80" text="1" id="quantity" enter="formatNumber(quantity); addItem();" focusOut="formatNumber(quantity)" />
+      </mx:FormItem>
+      <mx:FormItem label="Cubic Feet" required="true">
+        <mx:TextInput width="80" text="0" id="cubic_feet" enter="formatNumber(cubic_feet); addItem();" 
+		change="updateLBS();" focusOut="formatNumber(cubic_feet)"/>
+      </mx:FormItem>
+      <mx:FormItem direction="horizontal">
+        <mx:CheckBox label="Pack" id="pack" />
+        <mx:CheckBox label="Unpack" id="unpack" />
+      </mx:FormItem>
+    </mx:Form>
+    
+    <mx:Form>
+      <mx:FormItem label="Quantity to Pack">
+        <mx:TextInput width="80" text="0" id="pack_quantity" enter="formatNumber(pack_quantity); addItem();" 
+		focusOut="formatNumber(pack_quantity)"/>
+      </mx:FormItem>
+      <mx:FormItem label="Quantity to Unpack">
+        <mx:TextInput width="80" text="0" id="unpack_quantity" enter="formatNumber(unpack_quantity); addItem();"
+		focusOut="formatNumber(unpack_quantity)"/>
+      </mx:FormItem>
+      <mx:FormItem label="Lbs. / Unit" required="true">
+        <mx:TextInput width="80" text="0" id="lbs" enter="formatNumber(lbs); addItem();" 
+		focusOut="formatNumber(lbs)"/>
+      </mx:FormItem>
+    </mx:Form>
+    
+    <mx:Form>
+      <mx:FormItem>
+        <mx:Button label="Add Item" click="addItem();" />
+      </mx:FormItem>
+      <mx:Spacer height="24" />
+      <mx:FormItem>
+        <mx:CheckBox selected="true" label="Calculate Lbs. / Unit" id="auto_calc_lbs" />
+      </mx:FormItem>
+    </mx:Form>
+    
+  </mx:HBox>
+  
+</mx:VBox>

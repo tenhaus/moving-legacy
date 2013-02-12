@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:VBox width="100%" height="100%" verticalAlign="middle" horizontalAlign="center" 
+	xmlns:mx="http://www.macromedia.com/2003/mxml">
+
+  <mx:Script>
+  <![CDATA[
+  ]]>
+  </mx:Script>
+
+</mx:VBox>

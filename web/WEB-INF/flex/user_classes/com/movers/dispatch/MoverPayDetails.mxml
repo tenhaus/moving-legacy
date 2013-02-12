@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow title="Payroll Details." xmlns:mx="http://www.macromedia.com/2003/mxml" xmlns:movers="*" 
+	horizontalAlign="center" verticalAlign="middle">
+
+
+<mx:Script>
+<![CDATA[
+
+  [Event("OkEvent")]
+
+  public function closeWindow() 
+  {
+    dispatchEvent( { type: "OkEvent" } );
+  }
+
+]]>
+</mx:Script>
+  <mx:HBox borderStyle="solid" width="400" horizontalAlign="center"
+        marginLeft="20" marginRight="20" marginTop="10" marginBottom="10"
+        cornerRadius="5">
+  <mx:VBox>
+
+  <mx:Form>
+  <mx:FormItem label="Commision:">
+    <mx:Label id="comm_label" text="$0.00" />
+  </mx:FormItem>
+  <mx:FormItem label="Other:">
+    <mx:Label id="other_label" text="$0.00" />
+  </mx:FormItem>
+  <mx:FormItem label="Deductions:">
+    <mx:Label id="deduct_label" text="$0.00" />
+  </mx:FormItem>
+  <mx:FormItem label="Tips:">
+    <mx:Label id="tip_label" text="$0.00" />
+  </mx:FormItem>
+  </mx:Form>
+  </mx:VBox>
+
+  <mx:VBox>
+
+    <mx:Form>
+    <mx:FormItem label="Hours:">
+      <mx:Label id="hours_label" text="0" />
+    </mx:FormItem>
+    <mx:FormItem label="Total:">
+      <mx:Label id="total_label" text="$0.00" />
+    </mx:FormItem>
+    <mx:FormItem label="Paid:">
+      <mx:Label id="paid_label" text="$0.00" />
+    </mx:FormItem>
+    <mx:FormItem label="Balance:">
+      <mx:Label id="balance_label" text="$0.00" />
+    </mx:FormItem>
+    </mx:Form>
+
+  </mx:VBox>
+</mx:HBox>
+
+  <mx:ControlBar horizontalAlign="right">
+    <mx:Button label="Ok" click="closeWindow()" />
+  </mx:ControlBar>
+  
+</mx:TitleWindow>

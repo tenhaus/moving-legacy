@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:HBox width="100%" height="100%" horizontalAlign="center" xmlns:mx="http://www.macromedia.com/2003/mxml" load="initVO();" >
+
+<mx:Script>
+<![CDATA[
+import com.movers.VO.*;
+
+var additional_contactVO:Additional_ContactVO;
+
+public function reset()
+{
+  additional_contactVO = new Additional_ContactVO();
+  additionalname.text = "";
+  additionalname.validationSucceeded();
+  additionaladdress1.text = "";
+  additionaladdress1.validationSucceeded();
+  additionaladdress2.text = "";
+  additionaladdress2.validationSucceeded();
+  additionalcity.text = "";
+  additionalcity.validationSucceeded();
+  additionalzip.text = "";
+  additionalzip.validationSucceeded();
+  additionalemail.text = "";
+  additionalemail.validationSucceeded();
+  additionalhomephone.text = "";
+  additionalhomephone.validationSucceeded();
+  additionalworkphone.text = "";
+  additionalworkphone.validationSucceeded();
+  additionalfax.text = "";
+  additionalfax.validationSucceeded();                                                                                           
+  syncInputs();
+}
+
+
+public function initVO()
+{
+  additional_contactVO = new Additional_ContactVO();
+}
+
+
+function findStateIndex( comp, itemvalue ) {
+  var blah:Array = mx.utils.ArrayUtil.toArray( comp.dataProvider );
+  for( var i:Number = 0; i < blah.length; i++ ) {
+    var tmp = blah[i].data;
+    if( String(tmp) == String(itemvalue) ) {
+      return( i );
+    }
+  }
+  return( 0 );
+}
+									    
+
+public function syncInputs()
+{
+  additional_contact_dp.name = additional_contactVO._additional_contact_name;
+  additional_contact_dp.address1 = additional_contactVO._additional_contact_address_1;
+  additional_contact_dp.address2 = additional_contactVO._additional_contact_address_2;
+  additional_contact_dp.city = additional_contactVO._additional_contact_city;
+  additional_contact_dp.zip = additional_contactVO._additional_contact_zip;
+  additional_contact_dp.email = additional_contactVO._additional_contact_email;
+  additional_contact_dp.homephone = additional_contactVO._additional_contact_home_phone;
+  additional_contact_dp.workphone = additional_contactVO._additional_contact_work_phone;
+  additional_contact_dp.fax = additional_contactVO._additional_contact_home_fax;
+  additional_contact_dp.fax = additional_contactVO._additional_contact_work_fax;
+  additional_contact_dp.cross = additional_contactVO._additional_contact_cross_street;
+  additionalstate.selectedIndex = findStateIndex( additionalstate, additional_contactVO._additional_contact_state );
+
+}
+function getVars() : LoadVars 
+{
+  var contactVO:ContactVO = getContactVO();
+  
+  var vars:LoadVars = new LoadVars();
+  
+  vars.additional_name = additional_contactVO._additional_contact_name;
+  vars.additional_address = additional_contactVO._additional_contact_address_1 + " " + additional_contactVO._additional_contact_address_2
+  vars.additional_county = additional_contactVO._additional_contact_county;
+  vars.additional_city = additional_contactVO._additional_contact_city;
+  vars.additional_state = additional_contactVO._additional_contact_state;
+  vars.additional_zip = additional_contactVO._additional_contact_zip;       
+  vars.additional_email = additional_contactVO._additional_contact_email;
+  vars.additional_home_phone = additional_contactVO._additional_contact_home_phone;
+  vars.additional_work_phone = additional_contactVO._additional_contact_work_phone;
+
+  return( vars );
+}
+
+public function getContactVO()
+{
+  additional_contactVO._additional_contact_state = additionalstate.selectedItem.data;
+  return( additional_contactVO );
+}
+				    
+       
+
+public function setVO( add_new )
+{
+  additional_contactVO = add_new;
+  syncInputs();
+}
+
+public function isValid()
+{
+  return( true );
+}
+]]>
+</mx:Script>
+
+									  
+
+   <mx:Model id="states" source="states.xml"/>
+
+   <mx:Model id="additional_contact">
+     <name>{  additionalname.text }</name>
+     <address1>{ additionaladdress1.text }</address1>
+     <address2>{ additionaladdress2.text }</address2>
+     <city>{ additionalcity.text }</city>
+     <state>{ additionalstate.text }</state>
+     <zip>{ additionalzip.text }</zip>
+     <email>{ additionalemail.text }</email>
+     <homephone>{ additionalhomephone.text  }</homephone>
+     <workphone>{ additionalworkphone.text }</workphone>
+     <fax>{ additionalfax.text }</fax>
+     <fax2>{ additionalfax.text }</fax2>
+     <cross>{ ""  }</cross>
+   </mx:Model>								       
+
+   <mx:Model id="additional_contact_dp">
+     <name></name>
+     <address1></address1>
+     <address2></address2>
+     <city></city>
+     <zip></zip>
+     <email></email>
+     <homephone></homephone>
+     <workphone></workphone>
+     <fax></fax>
+     <fax2></fax2>
+     <cross></cross>
+   </mx:Model>
+									  
+
+   <mx:Binding source="additional_contact.name" destination="additional_contactVO._additional_contact_name" />
+   <mx:Binding source="additional_contact.address1" destination="additional_contactVO._additional_contact_address_1" />
+   <mx:Binding source="additional_contact.address2" destination="additional_contactVO._additional_contact_address_2" />
+   <mx:Binding source="additional_contact.city" destination="additional_contactVO._additional_contact_city" />
+   <mx:Binding source="additionalstate.selectedItem.data" destination="additional_contactVO._additional_contact_state" />
+   <mx:Binding source="additional_contact.zip" destination="additional_contactVO._additional_contact_zip" />
+   <mx:Binding source="additional_contact.email" destination="additional_contactVO._additional_contact_email" />
+   <mx:Binding source="additional_contact.homephone" destination="additional_contactVO._additional_contact_home_phone" />
+   <mx:Binding source="additional_contact.workphone" destination="additional_contactVO._additional_contact_work_phone" />
+   <mx:Binding source="additional_contact.fax" destination="additional_contactVO._additional_contact_home_fax" />
+   <mx:Binding source="additional_contact.fax" destination="additional_contactVO._additional_contact_work_fax" />
+   <mx:Binding source="additional_contact.cross" destination="additional_contactVO._additional_contact_cross_street" />
+					  
+
+   <mx:EmailValidator field="additional_contact.email" required="false"/>
+   <mx:ZipCodeValidator field="additional_contact.zip" required="false"/>
+   <mx:PhoneNumberValidator field="additional_contact.homephone" required="false"/>
+   <mx:PhoneNumberValidator field="additional_contact.workphone" required="false"/>
+   <mx:PhoneNumberValidator field="additional_contact.fax" required="false"/>
+   
+   <mx:Canvas> 
+     <mx:Form>
+     <mx:FormHeading label="Additional Contact Information" />
+   
+     <mx:FormItem id="additionalnameitem" label="Name">
+       <mx:TextInput id="additionalname" text="{  additional_contact_dp.name }" />
+     </mx:FormItem>
+
+     <mx:FormItem id="additionaladdressitem" label="Address">
+       <mx:TextInput id="additionaladdress1" text="{  additional_contact_dp.address1 }" />
+         <mx:TextInput id="additionaladdress2" text="{  additional_contact_dp.address2 }" />
+     </mx:FormItem>
+
+     <mx:FormItem id="additionalcityitem" label="City" >
+       <mx:TextInput id="additionalcity" text="{  additional_contact_dp.city }"/>
+     </mx:FormItem>
+
+     <mx:FormItem id="additionalstateitem" label="State">
+       <mx:ComboBox id="additionalstate" dataProvider="{ states.state }" />
+     </mx:FormItem>
+
+   <mx:FormItem id="additionalzipitem" label="Zip">
+     <mx:TextInput id="additionalzip" width="90" text="{  additional_contact_dp.zip }"/>
+   </mx:FormItem>
+
+   <mx:FormItem id="additionalemailitem" label="Email">
+     <mx:TextInput id="additionalemail" text="{  additional_contact_dp.email }" />
+   </mx:FormItem>
+
+   <mx:FormItem id="additionalhomephoneitem" label="Home Phone">
+     <mx:TextInput id="additionalhomephone" text="{  additional_contact_dp.homephone }"/>
+   </mx:FormItem>
+
+   <mx:FormItem id="additionalworkphoneitem" label="Work Phone">
+     <mx:TextInput id="additionalworkphone" text="{  additional_contact_dp.workphone }"/>
+   </mx:FormItem>
+
+   <mx:FormItem id="additionalfaxitem" label="Fax">
+     <mx:TextInput id="additionalfax" text="{  additional_contact_dp.fax }"/>
+   </mx:FormItem>
+   </mx:Form>
+   </mx:Canvas>
+   <mx:Spacer width="50" />
+</mx:HBox>

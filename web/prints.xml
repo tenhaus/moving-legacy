@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<prints>
+  <type label="Closed Job Copy" data="Closed Job Copy" />
+  <type label="Hard Copy" data="Hard Copy" />
+  <type label="Invoice" data="Invoice" />
+  <type label="Local Contract" data="Local Contract" />
+  <type label="Long Distance Contract" data="Long Distance Contract" />
+  <type label="Order for Service" data="Order for Service" />
+</prints>

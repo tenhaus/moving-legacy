@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Panel width="100%" height="100%" title="Open Contracts" horizontalAlign="right" xmlns:mx="http://www.macromedia.com/2003/mxml" creationPolicy="all" show="fetchData()" >
+
+<mx:Script>
+
+<![CDATA[
+[Event("LoadJobEvent")]
+
+var doubleClickTime:Number=200;
+var lastClicked;
+var lastIndex;
+
+
+function checkDoubleClick( event ) {
+  var dt=new Date();
+  var ms=dt.getTime();
+  var last=lastClicked;
+  lastClicked=ms;
+
+  if( dgrid.selectedIndex != lastIndex )
+  {
+    lastIndex = dgrid.selectedIndex;
+    return;
+  }
+  if (last==undefined || (ms-last)>doubleClickTime) {
+    return;
+  }
+  lastClicked=0;
+
+  var rec = dgrid.dataProvider.getItemAt( dgrid.selectedIndex );
+  dispatchEvent( { type: "LoadJobEvent", job_id: Number(rec.job), company_id: Number(rec.company_id) } );
+}
+
+public function formatDate( date:Date ):String
+{
+  return dateFormatter.format( date );
+}
+
+public function handleResults( results )
+{
+  if( results.getLength() != undefined ) 
+  { 
+    this.title = "Open Contracts  Total of " + results.getLength() + " jobs.";
+  }
+  
+  var balance:Number     = 0;
+  
+  for( var i=0; i<results.getLength(); i++ )
+  {
+    var rec = results.getItemAt(i);
+    
+    
+    if( !Number(rec.paid) )
+    {
+      rec.paid = "0.00";
+    }
+    if( !Number(rec.total) )
+    {
+      rec.total = "0.00";
+    }
+    if( !Number(rec.balance) && rec.balance != 0 )
+    {
+      rec.balance= rec.total;
+    }
+    
+    if( Number(rec.balance) ) 
+    {
+      balance += Number( rec.balance );
+    }
+    
+    rec.date = formatDate( rec.date );
+    rec.balance = USDformatter.format( rec.balance );
+    rec.paid = USDformatter.format( rec.paid );
+    rec.total = USDformatter.format( rec.total );
+  }
+  balance_label.text = "Balance: " + USDformatter.format( balance );
+  
+  dgrid.dataProvider = results;
+}
+
+public function fetchData() 
+{
+  var company_id:Number = _global.session._company_id;
+  openContracts.getOpenContracts( company_id );
+}
+
+]]>
+</mx:Script>
+
+
+<mx:Model id="companies" source="companies.xml" />
+
+<mx:DateFormatter id="dateFormatter" formatString="MM-DD-YYYY" />
+<mx:CurrencyFormatter id="USDformatter" precision="2" currencySymbol="$" decimalSeparatorFrom="."
+	decimalSeparatorTo="." useNegativeSign="true" useThousandsSeparator="true" alignSymbol="left"/>
+
+<mx:RemoteObject id="openContracts" source="com.movers.reports.OpenContracts"
+	result="handleResults( event.result );" fault="mx.controls.Alert.show( event.fault.faultstring, 'Error')">
+  <mx:method name="getOpenContracts" />
+</mx:RemoteObject>
+	  
+<mx:DataGrid id="dgrid" width="100%" height="100%" change="checkDoubleClick()">
+  <mx:columns>
+    <mx:Array>
+      <mx:DataGridColumn columnName="job" />
+      <mx:DataGridColumn columnName="name" />
+      <mx:DataGridColumn columnName="date" />
+      <mx:DataGridColumn columnName="paid" />
+      <mx:DataGridColumn columnName="total" />
+      <mx:DataGridColumn columnName="balance" />
+    </mx:Array>
+  </mx:columns>
+</mx:DataGrid>
+						
+
+
+<mx:ControlBar horizontalAlign="right">
+    
+        <mx:Label id="balance_label" text="Balance: $0.00" />
+	<mx:Spacer width="100%" />
+
+</mx:ControlBar>
+</mx:Panel>
