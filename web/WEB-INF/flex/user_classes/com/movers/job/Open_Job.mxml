@@ -350,37 +350,37 @@ public function handle_print( event )
   if( event.form == "Hard Copy" ) {
     var hardcopy = new LoadVars();
     hardcopy = util.hardCopyParams( hardcopy, open_jobVO );
-    hardcopy.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );  
+    hardcopy.send( "http://www.dawnmoving.com/smartmove63/Forms", "_blank", "POST" );  
     return;
   }
   if( event.form == "Order for Service" ){
     var order = new LoadVars();
     order = util.orderForServiceParams( order, open_jobVO );
-    order.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );  
+    order.send( "http://www.dawnmoving.com/smartmove63/Forms", "_blank", "POST" );  
     return;
   }
   if( event.form == "Long Distance Contract" ){
     var contract = new LoadVars();
     contract = util.longContractParams( contract, open_jobVO );
-    contract.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );  
+    contract.send( "http://www.dawnmoving.com/smartmove63/Forms", "_blank", "POST" );  
     return;
   }
   if( event.form == "Local Contract" ){
     var contract = new LoadVars();
     contract = util.localContractParams( contract, open_jobVO );
-    contract.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );  
+    contract.send( "http://www.dawnmoving.com/smartmove63/Forms", "_blank", "POST" );  
     return;
   }
   if( event.form == "Invoice" ){
     var invoice = new LoadVars();
     invoice = util.invoiceParams( invoice, open_jobVO );
-    invoice.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );  
+    invoice.send( "http://www.dawnmoving.com/smartmove63/Forms", "_blank", "POST" );  
     return;
   }
   if( event.form == "Closed Job Copy" ){
     var closed = new LoadVars();
     closed = util.closedJobParams( closed, open_jobVO );
-    closed.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );  
+    closed.send( "http://www.dawnmoving.com/smartmove63/Forms", "_blank", "POST" );  
     return;
   }
 }
@@ -455,7 +455,7 @@ function printJob()
   vars.booked_by   = jobVO._booked_by;
 
   if( vars != null ) {
-    vars.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );
+    vars.send( "http://www.dawnmoving.com/smartmove63/Forms", "_blank", "POST" );
   }
 }
 					   

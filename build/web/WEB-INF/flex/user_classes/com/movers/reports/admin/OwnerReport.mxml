@@ -355,7 +355,7 @@ public function printInvoice( result )
   
   invoice.total_amount = USDformatter.format( total );
   
-  invoice.send( "http://www.globalmover.net/smartmove63/Forms", "_blank", "POST" );
+  invoice.send( "http://www.dawnmoving.com/smartmove63/Forms", "_blank", "POST" );
 }
 
 public function getMonthlyInvoice()

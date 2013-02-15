@@ -303,7 +303,7 @@
   {
     var tmp = new LoadVars();
     tmp.print_id = result;
-    tmp.send( "http://www.globalmover.net/smartmove63/Payroll", "_blank", "POST" );
+    tmp.send( "http://www.dawnmoving.com/smartmove63/Payroll", "_blank", "POST" );
   }
 
 ]]>
